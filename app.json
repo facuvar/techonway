@@ -1,0 +1,31 @@
+{
+  "name": "TechonWay",
+  "description": "Sistema de gestión TechonWay",
+  "repository": "https://github.com/facuvar/techonway",
+  "keywords": ["php", "mysql", "bootstrap"],
+  "buildpacks": [
+    {
+      "url": "heroku/php"
+    }
+  ],
+  "addons": [
+    {
+      "plan": "jawsdb:kitefin",
+      "as": "JAWSDB"
+    }
+  ],
+  "env": {
+    "SENDGRID_API_KEY": {
+      "description": "SendGrid API Key for email",
+      "required": false
+    },
+    "WHATSAPP_TOKEN": {
+      "description": "WhatsApp API Token",
+      "required": false
+    },
+    "TWILIO_AUTH_TOKEN": {
+      "description": "Twilio Auth Token for SMS",
+      "required": false
+    }
+  }
+}
