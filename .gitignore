@@ -1,0 +1,36 @@
+# Archivos de desarrollo local
+.env
+.env.local
+
+# Logs
+logs/
+*.log
+
+# Base de datos local (si usas SQLite)
+*.sqlite
+*.db
+
+# Archivos temporales
+tmp/
+temp/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Backups
+*.backup.*
+
+# Archivos de configuración específicos del entorno local
+config/local.php
+config/.sendgrid_key
+
+# API Keys y tokens sensibles
+*.key
+*.token

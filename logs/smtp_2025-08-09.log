@@ -1,0 +1,150 @@
+[10:09:36] (2) SERVER -> CLIENT: 220 SG ESMTP service ready at geopod-ismtpd-8
+
+[10:09:36] (1) CLIENT -> SERVER: EHLO localhost
+
+[10:09:36] (2) SERVER -> CLIENT: 250-smtp.sendgrid.net
+250-8BITMIME
+250-PIPELINING
+250-SIZE 31457280
+250-SMTPUTF8
+250-STARTTLS
+250-AUTH PLAIN LOGIN
+250 AUTH=PLAIN LOGIN
+
+[10:09:36] (1) CLIENT -> SERVER: STARTTLS
+
+[10:09:36] (2) SERVER -> CLIENT: 220 Begin TLS negotiation now
+
+[10:09:37] (2) SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed
+[10:09:37] (1) CLIENT -> SERVER: QUIT
+
+[10:09:37] (2) SERVER -> CLIENT: 
+[10:09:37] (1) SMTP ERROR: QUIT command failed: 
+[10:09:37] (2) SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed
+[10:12:12] (2) SERVER -> CLIENT: 220 SG ESMTP service ready at geopod-ismtpd-36
+
+[10:12:12] (1) CLIENT -> SERVER: EHLO localhost
+
+[10:12:13] (2) SERVER -> CLIENT: 250-smtp.sendgrid.net
+250-8BITMIME
+250-PIPELINING
+250-SIZE 31457280
+250-SMTPUTF8
+250-STARTTLS
+250-AUTH PLAIN LOGIN
+250 AUTH=PLAIN LOGIN
+
+[10:12:13] (1) CLIENT -> SERVER: STARTTLS
+
+[10:12:13] (2) SERVER -> CLIENT: 220 Begin TLS negotiation now
+
+[10:12:14] (2) SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed
+[10:12:14] (1) CLIENT -> SERVER: QUIT
+
+[10:12:14] (2) SERVER -> CLIENT: 
+[10:12:14] (1) SMTP ERROR: QUIT command failed: 
+[10:12:14] (2) SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed
+[10:13:24] (2) SERVER -> CLIENT: 220 SG ESMTP service ready at geopod-ismtpd-18
+
+[10:13:24] (1) CLIENT -> SERVER: EHLO localhost
+
+[10:13:24] (2) SERVER -> CLIENT: 250-smtp.sendgrid.net
+250-8BITMIME
+250-PIPELINING
+250-SIZE 31457280
+250-SMTPUTF8
+250-STARTTLS
+250-AUTH PLAIN LOGIN
+250 AUTH=PLAIN LOGIN
+
+[10:13:24] (1) CLIENT -> SERVER: STARTTLS
+
+[10:13:24] (2) SERVER -> CLIENT: 220 Begin TLS negotiation now
+
+[10:13:25] (2) SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed
+[10:13:25] (1) CLIENT -> SERVER: QUIT
+
+[10:13:25] (2) SERVER -> CLIENT: 
+[10:13:25] (1) SMTP ERROR: QUIT command failed: 
+[10:13:25] (2) SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed
+[10:14:59] (2) SERVER -> CLIENT: 220 SG ESMTP service ready at geopod-ismtpd-37
+
+[10:14:59] (1) CLIENT -> SERVER: EHLO localhost
+
+[10:14:59] (2) SERVER -> CLIENT: 250-smtp.sendgrid.net
+250-8BITMIME
+250-PIPELINING
+250-SIZE 31457280
+250-SMTPUTF8
+250-STARTTLS
+250-AUTH PLAIN LOGIN
+250 AUTH=PLAIN LOGIN
+
+[10:14:59] (1) CLIENT -> SERVER: STARTTLS
+
+[10:14:59] (2) SERVER -> CLIENT: 220 Begin TLS negotiation now
+
+[10:15:00] (2) SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed
+[10:15:00] (1) CLIENT -> SERVER: QUIT
+
+[10:15:00] (2) SERVER -> CLIENT: 
+[10:15:00] (1) SMTP ERROR: QUIT command failed: 
+[10:15:00] (2) SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed
+[10:22:22] (2) SERVER -> CLIENT: 220 SG ESMTP service ready at geopod-ismtpd-27
+
+[10:22:22] (1) CLIENT -> SERVER: EHLO localhost
+
+[10:22:22] (2) SERVER -> CLIENT: 250-smtp.sendgrid.net
+250-8BITMIME
+250-PIPELINING
+250-SIZE 31457280
+250-SMTPUTF8
+250-STARTTLS
+250-AUTH PLAIN LOGIN
+250 AUTH=PLAIN LOGIN
+
+[10:22:22] (1) CLIENT -> SERVER: STARTTLS
+
+[10:22:22] (2) SERVER -> CLIENT: 220 Begin TLS negotiation now
+
+[10:22:23] (2) SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed
+[10:22:23] (1) CLIENT -> SERVER: QUIT
+
+[10:22:23] (2) SERVER -> CLIENT: 
+[10:22:23] (1) SMTP ERROR: QUIT command failed: 
+[10:22:23] (2) SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed
+[10:24:42] (2) SERVER -> CLIENT: 220 SG ESMTP service ready at geopod-ismtpd-35
+
+[10:24:42] (1) CLIENT -> SERVER: EHLO localhost
+
+[10:24:42] (2) SERVER -> CLIENT: 250-smtp.sendgrid.net
+250-8BITMIME
+250-PIPELINING
+250-SIZE 31457280
+250-SMTPUTF8
+250-STARTTLS
+250-AUTH PLAIN LOGIN
+250 AUTH=PLAIN LOGIN
+
+[10:24:42] (1) CLIENT -> SERVER: STARTTLS
+
+[10:24:42] (2) SERVER -> CLIENT: 220 Begin TLS negotiation now
+
+[10:24:43] (2) SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed
+[10:24:43] (1) CLIENT -> SERVER: QUIT
+
+[10:24:43] (2) SERVER -> CLIENT: 
+[10:24:43] (1) SMTP ERROR: QUIT command failed: 
+[10:24:43] (2) SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed

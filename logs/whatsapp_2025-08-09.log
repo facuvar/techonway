@@ -1,0 +1,40 @@
+[2025-08-09 10:46:46] INFO: Formateando número de teléfono: '123456789'
+[2025-08-09 10:46:46] INFO: Después de eliminar caracteres no numéricos: '123456789'
+[2025-08-09 10:46:46] INFO: Después de añadir código de país completo: '549123456789'
+[2025-08-09 10:46:46] INFO: Número final formateado: '549123456789'
+[2025-08-09 10:46:46] INFO: Enviando notificación a técnico: Pepe el tecnico lento (ID: 2) - Teléfono formateado: 549123456789
+[2025-08-09 10:46:46] INFO: Usando plantilla: nuevo_ticket
+[2025-08-09 10:46:46] INFO: Datos de la solicitud: {
+    "messaging_product": "whatsapp",
+    "recipient_type": "individual",
+    "to": "549123456789",
+    "type": "template",
+    "template": {
+        "name": "nuevo_ticket",
+        "language": {
+            "code": "es_AR"
+        }
+    }
+}
+[2025-08-09 10:46:48] INFO: Mensaje de WhatsApp con plantilla enviado correctamente a: 549123456789
+[2025-08-09 10:46:48] INFO: Respuesta: {"messaging_product":"whatsapp","contacts":[{"input":"549123456789","wa_id":"5499123456789"}],"messages":[{"id":"wamid.HBgNNTQ5OTEyMzQ1Njc4ORUCABEYEkIwOUY0NDRCQjY2MTU0MjhGNgA=","message_status":"accepted"}]}
+[2025-08-09 11:02:37] INFO: Formateando número de teléfono: '123456789'
+[2025-08-09 11:02:37] INFO: Después de eliminar caracteres no numéricos: '123456789'
+[2025-08-09 11:02:37] INFO: Después de añadir código de país completo: '549123456789'
+[2025-08-09 11:02:37] INFO: Número final formateado: '549123456789'
+[2025-08-09 11:02:37] INFO: Enviando notificación a técnico: Pepe el tecnico lento (ID: 2) - Teléfono formateado: 549123456789
+[2025-08-09 11:02:37] INFO: Usando plantilla: nuevo_ticket
+[2025-08-09 11:02:37] INFO: Datos de la solicitud: {
+    "messaging_product": "whatsapp",
+    "recipient_type": "individual",
+    "to": "549123456789",
+    "type": "template",
+    "template": {
+        "name": "nuevo_ticket",
+        "language": {
+            "code": "es_AR"
+        }
+    }
+}
+[2025-08-09 11:02:39] INFO: Mensaje de WhatsApp con plantilla enviado correctamente a: 549123456789
+[2025-08-09 11:02:39] INFO: Respuesta: {"messaging_product":"whatsapp","contacts":[{"input":"549123456789","wa_id":"5499123456789"}],"messages":[{"id":"wamid.HBgNNTQ5OTEyMzQ1Njc4ORUCABEYEjBEQ0MzNjA4MUEyQkQ2RDNCOQA=","message_status":"accepted"}]}

@@ -1,0 +1,17 @@
+<?php
+// Backup de configuración original de WhatsApp (generado automáticamente)
+return [
+    'api_url' => 'https://graph.facebook.com/v17.0/',
+    'token' => 'EAAajWSmtP1UBO0oyVHgwg2SHB2kgrBwLNn2Hxke5HZA4ZCocqFLvSeZA1FaYilrcS1vGdQa594z6TOhrcS4lUnB8QL2fy68pAWvAu8r4JhxzZBoiTKIACCHwpplRzjnvHO2RAU4uKoP2WKUvSVRqs6dctkipqUNhqXZBs2l8P2iHTZCcTv9kS2owsqyp2IGiskoQZDZD',
+    'phone_number_id' => '345032388695817',
+    'business_account_id' => '247414851788542',
+    'account_id' => '935803630729512',
+    'country_code' => '54',
+    'base_url' => 'http://localhost/sistema-techonway/',
+    'default_template' => 'nuevo_ticket',
+    'default_language' => 'es_AR'
+];
+
+
+
+

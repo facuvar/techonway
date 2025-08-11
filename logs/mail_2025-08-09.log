@@ -1,0 +1,43 @@
+[10:07:15] Mailer error: SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed
+[10:08:28] Mailer error: SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed
+[10:08:41] Mailer error: SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed
+[10:09:37] Mailer error: SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed
+[10:12:14] Mailer error: SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed
+[10:13:25] Mailer error: SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed
+[10:15:00] Mailer error: SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed
+[10:22:23] Mailer error: SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed
+[10:24:41] Mailer init. Transport: smtp
+[10:24:43] Mailer error: SMTP Error: Could not connect to SMTP host. Connection failed. stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages:
+error:0A000086:SSL routines::certificate verify failed
+[10:27:48] Mailer init. Transport: sendgrid_api
+[10:27:50] SendGrid API send result: OK
+[10:29:38] Mailer init. Transport: sendgrid_api
+[10:29:39] SendGrid API send result: OK
+[11:53:39] Mailer init. Transport: sendgrid_api
+[11:53:40] SendGrid API send result: OK
+[12:16:06] Mailer init. Transport: sendgrid_api
+[12:16:06] SendGrid API key no configurada.
+[12:16:06] SendGrid API send result: FAIL
+[12:17:17] Mailer init. Transport: sendgrid_api
+[12:17:17] SendGrid API key no configurada.
+[12:17:17] SendGrid API send result: FAIL
+[12:17:36] Mailer init. Transport: sendgrid_api
+[12:17:36] SendGrid API key no configurada.
+[12:17:36] SendGrid API send result: FAIL
+[12:19:17] Mailer init. Transport: sendgrid_api
+[12:19:17] SendGrid API key no configurada.
+[12:19:17] SendGrid API send result: FAIL
+[12:25:24] Mailer init. Transport: sendgrid_api
+[12:25:26] SendGrid API send result: OK
+[21:37:34] Mailer init. Transport: sendgrid_api
+[21:37:36] SendGrid API send result: OK
+[21:48:36] Mailer init. Transport: sendgrid_api
+[21:48:38] SendGrid API send result: OK

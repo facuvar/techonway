@@ -1,0 +1,248 @@
+[2025-08-08 15:49:37] INFO: Formateando número de teléfono: '+5491126317946'
+[2025-08-08 15:49:37] INFO: Después de eliminar caracteres no numéricos: '+5491126317946'
+[2025-08-08 15:49:37] INFO: Después de eliminar + inicial: '5491126317946'
+[2025-08-08 15:49:37] INFO: Número final formateado: '5491126317946'
+[2025-08-08 15:49:37] INFO: Enviando notificación a técnico: Santiago Habib (ID: 7) - Teléfono formateado: 5491126317946
+[2025-08-08 15:49:37] INFO: Usando plantilla: nuevo_ticket
+[2025-08-08 15:49:37] INFO: Datos de la solicitud: {
+    "messaging_product": "whatsapp",
+    "recipient_type": "individual",
+    "to": "5491126317946",
+    "type": "template",
+    "template": {
+        "name": "nuevo_ticket",
+        "language": {
+            "code": "es_AR"
+        }
+    }
+}
+[2025-08-08 15:49:39] INFO: Mensaje de WhatsApp con plantilla enviado correctamente a: 5491126317946
+[2025-08-08 15:49:39] INFO: Respuesta: {"messaging_product":"whatsapp","contacts":[{"input":"5491126317946","wa_id":"5491126317946"}],"messages":[{"id":"wamid.HBgNNTQ5MTEyNjMxNzk0NhUCABEYEjVCRUNCMkIwRERBQjFCMTdBMAA=","message_status":"accepted"}]}
+[2025-08-08 17:52:41] INFO: Formateando número de teléfono: '+5491151109844'
+[2025-08-08 17:52:41] INFO: Después de eliminar caracteres no numéricos: '+5491151109844'
+[2025-08-08 17:52:41] INFO: Después de eliminar + inicial: '5491151109844'
+[2025-08-08 17:52:41] INFO: Número final formateado: '5491151109844'
+[2025-08-08 17:52:41] INFO: Enviando notificación a técnico: facu tecnik (ID: 5) - Teléfono formateado: 5491151109844
+[2025-08-08 17:52:41] INFO: Usando plantilla: nuevo_ticket
+[2025-08-08 17:52:41] INFO: Datos de la solicitud: {
+    "messaging_product": "whatsapp",
+    "recipient_type": "individual",
+    "to": "5491151109844",
+    "type": "template",
+    "template": {
+        "name": "nuevo_ticket",
+        "language": {
+            "code": "es_AR"
+        }
+    }
+}
+[2025-08-08 17:52:43] INFO: Mensaje de WhatsApp con plantilla enviado correctamente a: 5491151109844
+[2025-08-08 17:52:43] INFO: Respuesta: {"messaging_product":"whatsapp","contacts":[{"input":"5491151109844","wa_id":"5491151109844"}],"messages":[{"id":"wamid.HBgNNTQ5MTE1MTEwOTg0NBUCABEYEkIzRDBDRkEyNkZDOTE1QkRCRQA=","message_status":"accepted"}]}
+[2025-08-08 18:05:10] INFO: Formateando número de teléfono: '+5491151109844'
+[2025-08-08 18:05:10] INFO: Después de eliminar caracteres no numéricos: '+5491151109844'
+[2025-08-08 18:05:10] INFO: Después de eliminar + inicial: '5491151109844'
+[2025-08-08 18:05:10] INFO: Número final formateado: '5491151109844'
+[2025-08-08 18:05:10] INFO: Enviando notificación a técnico: facu tecnik (ID: 5) - Teléfono formateado: 5491151109844
+[2025-08-08 18:05:10] INFO: Usando plantilla: nuevo_ticket
+[2025-08-08 18:05:10] INFO: Datos de la solicitud: {
+    "messaging_product": "whatsapp",
+    "recipient_type": "individual",
+    "to": "5491151109844",
+    "type": "template",
+    "template": {
+        "name": "nuevo_ticket",
+        "language": {
+            "code": "es_AR"
+        }
+    }
+}
+[2025-08-08 18:05:11] INFO: Mensaje de WhatsApp con plantilla enviado correctamente a: 5491151109844
+[2025-08-08 18:05:11] INFO: Respuesta: {"messaging_product":"whatsapp","contacts":[{"input":"5491151109844","wa_id":"5491151109844"}],"messages":[{"id":"wamid.HBgNNTQ5MTE1MTEwOTg0NBUCABEYEjM2MzI2OUVDMkM3MTU0RDhGOQA=","message_status":"accepted"}]}
+[2025-08-08 18:06:05] INFO: Formateando número de teléfono: '+5491151109844'
+[2025-08-08 18:06:05] INFO: Después de eliminar caracteres no numéricos: '+5491151109844'
+[2025-08-08 18:06:05] INFO: Después de eliminar + inicial: '5491151109844'
+[2025-08-08 18:06:05] INFO: Número final formateado: '5491151109844'
+[2025-08-08 18:06:05] INFO: Enviando notificación a técnico: facu tecnik (ID: 5) - Teléfono formateado: 5491151109844
+[2025-08-08 18:06:05] INFO: Usando plantilla: nuevo_ticket
+[2025-08-08 18:06:05] INFO: Datos de la solicitud: {
+    "messaging_product": "whatsapp",
+    "recipient_type": "individual",
+    "to": "5491151109844",
+    "type": "template",
+    "template": {
+        "name": "nuevo_ticket",
+        "language": {
+            "code": "es_AR"
+        }
+    }
+}
+[2025-08-08 18:06:06] INFO: Mensaje de WhatsApp con plantilla enviado correctamente a: 5491151109844
+[2025-08-08 18:06:06] INFO: Respuesta: {"messaging_product":"whatsapp","contacts":[{"input":"5491151109844","wa_id":"5491151109844"}],"messages":[{"id":"wamid.HBgNNTQ5MTE1MTEwOTg0NBUCABEYEkVCNUU1NkQ1Mzg0RDc4MkIxMAA=","message_status":"accepted"}]}
+[2025-08-08 18:07:50] INFO: Formateando número de teléfono: '+5491151109844'
+[2025-08-08 18:07:50] INFO: Después de eliminar caracteres no numéricos: '+5491151109844'
+[2025-08-08 18:07:50] INFO: Después de eliminar + inicial: '5491151109844'
+[2025-08-08 18:07:50] INFO: Número final formateado: '5491151109844'
+[2025-08-08 18:07:50] INFO: Enviando notificación a técnico: facu tecnik (ID: 5) - Teléfono formateado: 5491151109844
+[2025-08-08 18:07:50] INFO: Usando plantilla: nuevo_ticket
+[2025-08-08 18:07:50] INFO: Datos de la solicitud: {
+    "messaging_product": "whatsapp",
+    "recipient_type": "individual",
+    "to": "5491151109844",
+    "type": "template",
+    "template": {
+        "name": "nuevo_ticket",
+        "language": {
+            "code": "es_AR"
+        }
+    }
+}
+[2025-08-08 18:07:51] INFO: Mensaje de WhatsApp con plantilla enviado correctamente a: 5491151109844
+[2025-08-08 18:07:51] INFO: Respuesta: {"messaging_product":"whatsapp","contacts":[{"input":"5491151109844","wa_id":"5491151109844"}],"messages":[{"id":"wamid.HBgNNTQ5MTE1MTEwOTg0NBUCABEYEkQyRUM1Nzg4M0FFRDAxMzJFNQA=","message_status":"accepted"}]}
+[2025-08-08 18:13:02] INFO: Formateando número de teléfono: '+5491151109844'
+[2025-08-08 18:13:02] INFO: Después de eliminar caracteres no numéricos: '+5491151109844'
+[2025-08-08 18:13:02] INFO: Después de eliminar + inicial: '5491151109844'
+[2025-08-08 18:13:02] INFO: Número final formateado: '5491151109844'
+[2025-08-08 18:13:02] INFO: Enviando notificación a técnico: facu tecnik (ID: 5) - Teléfono formateado: 5491151109844
+[2025-08-08 18:13:02] INFO: Usando plantilla: nuevo_ticket
+[2025-08-08 18:13:02] INFO: Datos de la solicitud: {
+    "messaging_product": "whatsapp",
+    "recipient_type": "individual",
+    "to": "5491151109844",
+    "type": "template",
+    "template": {
+        "name": "nuevo_ticket",
+        "language": {
+            "code": "es_AR"
+        }
+    }
+}
+[2025-08-08 18:13:04] INFO: Mensaje de WhatsApp con plantilla enviado correctamente a: 5491151109844
+[2025-08-08 18:13:04] INFO: Respuesta: {"messaging_product":"whatsapp","contacts":[{"input":"5491151109844","wa_id":"5491151109844"}],"messages":[{"id":"wamid.HBgNNTQ5MTE1MTEwOTg0NBUCABEYEjlDMTk0QTU3RkZENTAzMEQ5NAA=","message_status":"accepted"}]}
+[2025-08-08 18:18:31] INFO: Formateando número de teléfono: '+5491151109844'
+[2025-08-08 18:18:31] INFO: Después de eliminar caracteres no numéricos: '+5491151109844'
+[2025-08-08 18:18:31] INFO: Después de eliminar + inicial: '5491151109844'
+[2025-08-08 18:18:31] INFO: Número final formateado: '5491151109844'
+[2025-08-08 18:18:31] INFO: Enviando notificación a técnico: facu tecnik (ID: 5) - Teléfono formateado: 5491151109844
+[2025-08-08 18:18:31] INFO: Usando plantilla: nuevo_ticket
+[2025-08-08 18:18:31] INFO: Datos de la solicitud: {
+    "messaging_product": "whatsapp",
+    "recipient_type": "individual",
+    "to": "5491151109844",
+    "type": "template",
+    "template": {
+        "name": "nuevo_ticket",
+        "language": {
+            "code": "es_AR"
+        }
+    }
+}
+[2025-08-08 18:18:33] INFO: Mensaje de WhatsApp con plantilla enviado correctamente a: 5491151109844
+[2025-08-08 18:18:33] INFO: Respuesta: {"messaging_product":"whatsapp","contacts":[{"input":"5491151109844","wa_id":"5491151109844"}],"messages":[{"id":"wamid.HBgNNTQ5MTE1MTEwOTg0NBUCABEYEkNEMzE5RDVGQUUwREVGQzIxNAA=","message_status":"accepted"}]}
+[2025-08-08 18:19:16] INFO: Formateando número de teléfono: '+5491151109844'
+[2025-08-08 18:19:16] INFO: Después de eliminar caracteres no numéricos: '+5491151109844'
+[2025-08-08 18:19:16] INFO: Después de eliminar + inicial: '5491151109844'
+[2025-08-08 18:19:16] INFO: Número final formateado: '5491151109844'
+[2025-08-08 18:19:16] INFO: Enviando notificación a técnico: facu tecnik (ID: 5) - Teléfono formateado: 5491151109844
+[2025-08-08 18:19:16] INFO: Usando plantilla: nuevo_ticket
+[2025-08-08 18:19:16] INFO: Datos de la solicitud: {
+    "messaging_product": "whatsapp",
+    "recipient_type": "individual",
+    "to": "5491151109844",
+    "type": "template",
+    "template": {
+        "name": "nuevo_ticket",
+        "language": {
+            "code": "es_AR"
+        }
+    }
+}
+[2025-08-08 18:19:17] INFO: Mensaje de WhatsApp con plantilla enviado correctamente a: 5491151109844
+[2025-08-08 18:19:17] INFO: Respuesta: {"messaging_product":"whatsapp","contacts":[{"input":"5491151109844","wa_id":"5491151109844"}],"messages":[{"id":"wamid.HBgNNTQ5MTE1MTEwOTg0NBUCABEYEkJGNTM4OUFDRUM2RDI5RkZBQQA=","message_status":"accepted"}]}
+[2025-08-08 18:33:46] INFO: Formateando número de teléfono: '+5491151109844'
+[2025-08-08 18:33:46] INFO: Después de eliminar caracteres no numéricos: '+5491151109844'
+[2025-08-08 18:33:46] INFO: Después de eliminar + inicial: '5491151109844'
+[2025-08-08 18:33:46] INFO: Número final formateado: '5491151109844'
+[2025-08-08 18:33:46] INFO: Enviando notificación a técnico: facu tecnik (ID: 5) - Teléfono formateado: 5491151109844
+[2025-08-08 18:33:46] INFO: Usando plantilla: nuevo_ticket
+[2025-08-08 18:33:46] INFO: Datos de la solicitud: {
+    "messaging_product": "whatsapp",
+    "recipient_type": "individual",
+    "to": "5491151109844",
+    "type": "template",
+    "template": {
+        "name": "nuevo_ticket",
+        "language": {
+            "code": "es_AR"
+        }
+    }
+}
+[2025-08-08 18:33:47] INFO: Mensaje de WhatsApp con plantilla enviado correctamente a: 5491151109844
+[2025-08-08 18:33:47] INFO: Respuesta: {"messaging_product":"whatsapp","contacts":[{"input":"5491151109844","wa_id":"5491151109844"}],"messages":[{"id":"wamid.HBgNNTQ5MTE1MTEwOTg0NBUCABEYEkU4RjE1NUFCQzc1NkE2REZDNwA=","message_status":"accepted"}]}
+[2025-08-08 18:36:53] INFO: Formateando número de teléfono: '+5491151109844'
+[2025-08-08 18:36:53] INFO: Después de eliminar caracteres no numéricos: '+5491151109844'
+[2025-08-08 18:36:53] INFO: Después de eliminar + inicial: '5491151109844'
+[2025-08-08 18:36:53] INFO: Número final formateado: '5491151109844'
+[2025-08-08 18:36:53] INFO: Enviando mensaje de bienvenida a técnico: facu tecnik (ID: 5) - Teléfono formateado: 5491151109844
+[2025-08-08 18:36:53] INFO: Datos de la solicitud: {
+    "messaging_product": "whatsapp",
+    "recipient_type": "individual",
+    "to": "5491151109844",
+    "type": "text",
+    "text": {
+        "body": "\u00a1Hola facu tecnik! Bienvenido\/a al sistema de gesti\u00f3n de tickets. \ud83d\udc4b\n\nEste es el n\u00famero oficial para notificaciones de tickets. Por favor, *responde a este mensaje* con un OK para activar las notificaciones.\n\nRecibir\u00e1s alertas en este n\u00famero cuando se te asigne un nuevo ticket. \ud83d\udd14\n\nGracias por tu colaboraci\u00f3n."
+    }
+}
+[2025-08-08 18:36:53] INFO: URL de la API: https://graph.facebook.com/v20.0/345032388695817/messages
+[2025-08-08 18:36:53] INFO: Información detallada de cURL:
+*   Trying 31.13.94.19:443...
+* Connected to graph.facebook.com (31.13.94.19) port 443
+* ALPN: curl offers h2,http/1.1
+* SSL connection using TLSv1.3 / TLS_CHACHA20_POLY1305_SHA256
+* ALPN: server accepted h2
+* Server certificate:
+*  subject: C=US; ST=California; L=Menlo Park; O=Meta Platforms, Inc.; CN=*.facebook.com
+*  start date: May 18 00:00:00 2025 GMT
+*  expire date: Aug 16 23:59:59 2025 GMT
+*  subjectAltName: host "graph.facebook.com" matched cert's "*.facebook.com"
+*  issuer: C=US; O=DigiCert Inc; OU=www.digicert.com; CN=DigiCert SHA2 High Assurance Server CA
+*  SSL certificate verify result: unable to get local issuer certificate (20), continuing anyway.
+* using HTTP/2
+* [HTTP/2] [1] OPENED stream for https://graph.facebook.com/v20.0/345032388695817/messages
+* [HTTP/2] [1] [:method: POST]
+* [HTTP/2] [1] [:scheme: https]
+* [HTTP/2] [1] [:authority: graph.facebook.com]
+* [HTTP/2] [1] [:path: /v20.0/345032388695817/messages]
+* [HTTP/2] [1] [accept: */*]
+* [HTTP/2] [1] [authorization: Bearer EAAajWSmtP1UBO0oyVHgwg2SHB2kgrBwLNn2Hxke5HZA4ZCocqFLvSeZA1FaYilrcS1vGdQa594z6TOhrcS4lUnB8QL2fy68pAWvAu8r4JhxzZBoiTKIACCHwpplRzjnvHO2RAU4uKoP2WKUvSVRqs6dctkipqUNhqXZBs2l8P2iHTZCcTv9kS2owsqyp2IGiskoQZDZD]
+* [HTTP/2] [1] [content-type: application/json]
+* [HTTP/2] [1] [content-length: 484]
+> POST /v20.0/345032388695817/messages HTTP/2
+Host: graph.facebook.com
+Accept: */*
+Authorization: Bearer EAAajWSmtP1UBO0oyVHgwg2SHB2kgrBwLNn2Hxke5HZA4ZCocqFLvSeZA1FaYilrcS1vGdQa594z6TOhrcS4lUnB8QL2fy68pAWvAu8r4JhxzZBoiTKIACCHwpplRzjnvHO2RAU4uKoP2WKUvSVRqs6dctkipqUNhqXZBs2l8P2iHTZCcTv9kS2owsqyp2IGiskoQZDZD
+Content-Type: application/json
+Content-Length: 484
+
+< HTTP/2 200 
+< content-type: application/json; charset=UTF-8
+< vary: Origin
+< x-ad-api-version-warning: You are calling a deprecated version of the Ads API.
+< x-business-use-case-usage: {"247414851788542":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}
+< access-control-allow-origin: *
+< facebook-api-version: v20.0
+< strict-transport-security: max-age=15552000; preload
+< pragma: no-cache
+< cache-control: private, no-cache, no-store, must-revalidate
+< expires: Sat, 01 Jan 2000 00:00:00 GMT
+< x-fb-request-id: AaJgtEUH4lhZnN0rgB_O-Di
+< x-fb-trace-id: G1JK9q1lSlH
+< x-fb-rev: 1025686970
+< x-fb-debug: NG/9GbTjZSusaSQh2kQ2idbFGDhi2KWt88KTim44S/NLWe/LQ1QXQF+ZwKtjaS9Jjnxk7qP5TMo0/NMLDmUhhg==
+< content-length: 180
+< date: Fri, 08 Aug 2025 21:36:52 GMT
+< x-fb-connection-quality: EXCELLENT; q=0.9, rtt=24, rtx=0, c=10, mss=1392, tbw=3615, tp=-1, tpl=-1, uplat=512, ullat=0
+< alt-svc: h3=":443"; ma=86400
+< 
+* Connection #0 to host graph.facebook.com left intact
+[2025-08-08 18:36:53] INFO: Mensaje de bienvenida enviado correctamente a: 5491151109844
+[2025-08-08 18:36:53] INFO: Respuesta: {"messaging_product":"whatsapp","contacts":[{"input":"5491151109844","wa_id":"5491151109844"}],"messages":[{"id":"wamid.HBgNNTQ5MTE1MTEwOTg0NBUCABEYEjFDQTk5NTY2NDQ3RTc3MkUwMwA="}]}
