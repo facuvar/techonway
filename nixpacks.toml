@@ -1,21 +1,15 @@
-# Use Apache + mod_php instead of nginx + fastcgi
+# Simplificar - usar solo PHP built-in server
 [variables]
 NIXPACKS_PHP_VERSION = "8.2"
-NIXPACKS_APACHE_VERSION = "2.4"
 
 [phases.setup]
-nixPkgs = ["php82", "php82Packages.composer", "apache", "apacheHttpd"]
-aptPkgs = ["apache2", "libapache2-mod-php8.2"]
+nixPkgs = ["php82", "php82Packages.composer"]
 
 [phases.install]
-cmds = [
-    "composer install --no-dev --optimize-autoloader",
-    "a2enmod php8.2",
-    "a2enmod rewrite"
-]
+cmds = ["composer install --no-dev --optimize-autoloader"]
 
 [phases.build]
-cmds = ["echo 'Apache + PHP setup complete'"]
+cmds = ["echo 'PHP setup complete'"]
 
 [start]
-cmd = "apache2-foreground"
+cmd = "php -S 0.0.0.0:$PORT"
