@@ -1,0 +1,22 @@
+# Railway PHP configuration
+RewriteEngine On
+
+# Redirect to index.php if file doesn't exist
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?page=$1 [QSA,L]
+
+# PHP FastCGI configuration
+<IfModule mod_fastcgi.c>
+    AddHandler php-fcgi .php
+    Action php-fcgi /php-fcgi
+    Alias /php-fcgi /usr/bin/php-cgi
+    FastCgiExternalServer /usr/bin/php-cgi -host 127.0.0.1:9000 -pass-header Authorization
+</IfModule>
+
+# Security headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>

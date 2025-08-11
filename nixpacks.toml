@@ -1,20 +1,21 @@
-# Force nixpacks to use PHP built-in server
+# Use Apache + mod_php instead of nginx + fastcgi
 [variables]
 NIXPACKS_PHP_VERSION = "8.2"
-NIXPACKS_PHP_ROOT_DIR = "/app"
-NIXPACKS_PHP_FALLBACK_PATH = "/index.php"
-
-[providers]
-php = "8.2"
+NIXPACKS_APACHE_VERSION = "2.4"
 
 [phases.setup]
-nixPkgs = ["php82", "php82Packages.composer"]
+nixPkgs = ["php82", "php82Packages.composer", "apache", "apacheHttpd"]
+aptPkgs = ["apache2", "libapache2-mod-php8.2"]
 
 [phases.install]
-cmds = ["composer install --no-dev --optimize-autoloader"]
+cmds = [
+    "composer install --no-dev --optimize-autoloader",
+    "a2enmod php8.2",
+    "a2enmod rewrite"
+]
 
 [phases.build]
-cmds = ["echo 'Build complete'"]
+cmds = ["echo 'Apache + PHP setup complete'"]
 
 [start]
-cmd = "php -S 0.0.0.0:$PORT -t /app"
+cmd = "apache2-foreground"

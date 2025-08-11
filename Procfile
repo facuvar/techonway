@@ -1,1 +1,1 @@
-web: bash .nixpacks/start.sh
+web: apache2-foreground
