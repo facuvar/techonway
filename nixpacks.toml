@@ -1,5 +1,11 @@
+# Force nixpacks to use PHP built-in server
 [variables]
 NIXPACKS_PHP_VERSION = "8.2"
+NIXPACKS_PHP_ROOT_DIR = "/app"
+NIXPACKS_PHP_FALLBACK_PATH = "/index.php"
+
+[providers]
+php = "8.2"
 
 [phases.setup]
 nixPkgs = ["php82", "php82Packages.composer"]
@@ -11,4 +17,4 @@ cmds = ["composer install --no-dev --optimize-autoloader"]
 cmds = ["echo 'Build complete'"]
 
 [start]
-cmd = "php -S 0.0.0.0:$PORT"
+cmd = "php -S 0.0.0.0:$PORT -t /app"
