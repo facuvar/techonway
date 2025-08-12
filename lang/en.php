@@ -174,7 +174,7 @@ return [
     'technicians.form.name' => 'Name',
     'technicians.form.email' => 'Email',
     'technicians.form.phone' => 'Phone',
-    'technicians.form.phone_help' => 'It will be used to send WhatsApp notifications. The technician must reply to the initial message to activate notifications.',
+    'technicians.form.phone_help' => 'It will be used to send WhatsApp notifications. The technician must reply to the initial message to activate notifications. (format: + (country code and number without spaces))',
     'technicians.form.zone' => 'Zone',
     'technicians.form.select_zone' => 'Select zone',
     'technicians.form.password_hint_edit' => 'Password (leave blank to keep current)',

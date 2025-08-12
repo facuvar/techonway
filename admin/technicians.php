@@ -322,7 +322,7 @@ include_once '../templates/header.php';
                             <input type="text" class="form-control" id="phone" name="phone" 
                                    value="<?php echo $action === 'edit' ? escape($technician['phone']) : ''; ?>">
                             <div class="form-text">
-                                <i class="bi bi-whatsapp text-success"></i> <?php echo __('technicians.form.phone_help', 'Se utilizará para enviar notificaciones por WhatsApp. El técnico deberá responder al mensaje inicial para activar las notificaciones.'); ?>
+                                <i class="bi bi-whatsapp text-success"></i> <?php echo __('technicians.form.phone_help', 'Se utilizará para enviar notificaciones por WhatsApp. El técnico deberá responder al mensaje inicial para activar las notificaciones. (formato: + (código de país y número sin espacios))'); ?>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -346,7 +346,7 @@ include_once '../templates/header.php';
                     </div>
                     
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="<?php echo BASE_URL; ?>admin/technicians.php" class="btn btn-outline-secondary"><?php echo __('common.cancel', 'Cancelar'); ?></a>
+                        <a href="<?php echo BASE_URL; ?>admin/technicians.php" class="btn btn-secondary"><?php echo __('common.cancel', 'Cancelar'); ?></a>
                         <button type="submit" name="save_technician" class="btn btn-primary"><?php echo __('common.save', 'Guardar'); ?></button>
                     </div>
                 </form>
