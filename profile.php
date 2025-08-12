@@ -83,23 +83,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else if ($file['size'] > 2 * 1024 * 1024) {
                 flash('La imagen no puede superar los 2 MB.', 'danger');
             } else {
-                $ext = $allowed[$mime];
-                $uploadsDir = __DIR__ . '/uploads/avatars';
-                if (!is_dir($uploadsDir)) {
-                    mkdir($uploadsDir, 0755, true);
-                }
-                $filename = 'user_' . $userId . '_' . time() . '.' . $ext;
-                $destPath = $uploadsDir . '/' . $filename;
-                if (move_uploaded_file($file['tmp_name'], $destPath)) {
-                    // Guardar ruta relativa
-                    $relativePath = 'uploads/avatars/' . $filename;
-                    $db->update('users', ['avatar' => $relativePath], 'id = ?', [$userId]);
-                    flash('Foto de perfil actualizada.', 'success');
-                    // Refresh user
-                    $user = $db->selectOne("SELECT * FROM users WHERE id = ?", [$userId]);
-                } else {
-                    flash('No se pudo guardar la imagen.', 'danger');
-                }
+                // En lugar de guardar archivo, convertir a base64 para Railway
+                $imageData = file_get_contents($file['tmp_name']);
+                $base64 = base64_encode($imageData);
+                $dataUri = 'data:' . $mime . ';base64,' . $base64;
+                
+                // Guardar data URI en la base de datos
+                $db->update('users', ['avatar' => $dataUri], 'id = ?', [$userId]);
+                flash('Foto de perfil actualizada.', 'success');
+                // Refresh user
+                $user = $db->selectOne("SELECT * FROM users WHERE id = ?", [$userId]);
             }
         }
     }
@@ -172,7 +165,14 @@ include_once 'templates/header.php';
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
                         <?php if (!empty($user['avatar'])): ?>
-                            <img src="<?php echo BASE_URL . escape($user['avatar']); ?>" alt="Avatar" style="width: 72px; height: 72px; object-fit: cover; border-radius: 50%; border: 2px solid #444;">
+                            <?php 
+                                $avatarSrc = $user['avatar'];
+                                // Si no es data URI, agregar BASE_URL
+                                if (strpos($avatarSrc, 'data:') !== 0) {
+                                    $avatarSrc = BASE_URL . $avatarSrc;
+                                }
+                            ?>
+                            <img src="<?php echo escape($avatarSrc); ?>" alt="Avatar" style="width: 72px; height: 72px; object-fit: cover; border-radius: 50%; border: 2px solid #444;">
                         <?php else: ?>
                             <div style="width: 72px; height: 72px; border-radius: 50%; background:#333; display:flex; align-items:center; justify-content:center; border: 2px solid #444;" class="me-3">
                                 <i class="bi bi-person" style="font-size: 2rem;"></i>

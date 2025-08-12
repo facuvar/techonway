@@ -9,11 +9,29 @@ require_once dirname(__FILE__) . '/timezone_config.php';
 
 // Configurar sesión antes de iniciarla
 if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
-    // Configurar duración de sesión (8 horas)
+    // Configurar duración de sesión (8 horas = 28800 segundos)
     ini_set('session.gc_maxlifetime', 28800);
     ini_set('session.cookie_lifetime', 28800);
-    session_set_cookie_params(28800);
+    
+    // Configurar parámetros de cookie para mayor duración
+    session_set_cookie_params([
+        'lifetime' => 28800,
+        'path' => '/',
+        'domain' => '',
+        'secure' => isset($_SERVER['HTTPS']),
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+    
     session_start();
+    
+    // Regenerar ID de sesión cada 30 minutos para seguridad
+    if (!isset($_SESSION['last_regeneration'])) {
+        $_SESSION['last_regeneration'] = time();
+    } elseif (time() - $_SESSION['last_regeneration'] > 1800) {
+        session_regenerate_id(true);
+        $_SESSION['last_regeneration'] = time();
+    }
 }
 
 // Set error reporting - suprimir warnings en producción

@@ -12,7 +12,14 @@
             $avatar = $currentUser['avatar'] ?? null;
         ?>
         <?php if (!empty($avatar)): ?>
-            <img src="<?php echo BASE_URL . escape($avatar); ?>" alt="Avatar" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #444;">
+            <?php 
+                $avatarSrc = $avatar;
+                // Si no es data URI, agregar BASE_URL
+                if (strpos($avatarSrc, 'data:') !== 0) {
+                    $avatarSrc = BASE_URL . $avatarSrc;
+                }
+            ?>
+            <img src="<?php echo escape($avatarSrc); ?>" alt="Avatar" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #444;">
         <?php else: ?>
             <i class="bi bi-person-circle" style="font-size:2.5rem;"></i>
         <?php endif; ?>
