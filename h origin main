@@ -1,0 +1,2 @@
+[33md04af1d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Fix: Script para corregir AUTO_INCREMENT en tabla service_requests
+[33m0d33f28[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Add: Script de debug para service_request error 500
