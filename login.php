@@ -21,12 +21,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($email) || empty($password)) {
         $error = 'Por favor, ingrese su correo electrónico y contraseña.';
     } else {
-        // Attempt login
-        Logger::info('Intento de login', [
-            'email' => $email,
-            'role' => $role,
-            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
-        ]);
+        // Attempt login (log only in development)
+        if (class_exists('Logger')) {
+            Logger::info('Intento de login', [
+                'email' => $email,
+                'role' => $role,
+                'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+            ]);
+        }
         
         if ($auth->login($email, $password, $role)) {
             // Redirect based on role

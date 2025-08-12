@@ -21,21 +21,25 @@ class Auth {
         
         if (password_verify($password, $user['password'])) {
             $this->setSession($user);
-            Logger::auth('Login exitoso', [
-                'user_id' => $user['id'],
-                'email' => $user['email'],
-                'role' => $user['role'],
-                'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
-            ]);
+            if (class_exists('Logger')) {
+                Logger::auth('Login exitoso', [
+                    'user_id' => $user['id'],
+                    'email' => $user['email'],
+                    'role' => $user['role'],
+                    'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+                ]);
+            }
             return true;
         }
         
-        Logger::auth('Login fallido', [
-            'email' => $email,
-            'role' => $role,
-            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-            'user_found' => $user ? 'yes' : 'no'
-        ]);
+        if (class_exists('Logger')) {
+            Logger::auth('Login fallido', [
+                'email' => $email,
+                'role' => $role,
+                'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                'user_found' => $user ? 'yes' : 'no'
+            ]);
+        }
         return false;
     }
     
