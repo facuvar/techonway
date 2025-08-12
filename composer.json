@@ -3,21 +3,18 @@
     "description": "Sistema de gestión TechonWay",
     "type": "project",
     "require": {
-        "php": "^8.1",
-        "ext-pdo": "*",
-        "ext-pdo_mysql": "*",
-        "ext-mbstring": "*",
-        "ext-json": "*"
+        "php": ">=8.1"
     },
     "require-dev": {},
     "scripts": {
         "post-install-cmd": [
-            "echo 'Installation complete'"
+            "echo 'TechonWay installation complete'"
         ]
     },
     "config": {
         "optimize-autoloader": true,
         "prefer-dist": true,
-        "sort-packages": true
+        "sort-packages": true,
+        "platform-check": false
     }
 }
