@@ -54,13 +54,26 @@ try {
     }
 
     // Vincular y cerrar solicitud
-    $updateResult = $db->update('service_requests', [
-        'ticket_id' => $ticketId,
-        'status' => 'closed'
-    ], 'id = ?', [$requestId]);
+    try {
+        $updateResult = $db->update('service_requests', [
+            'ticket_id' => $ticketId,
+            'status' => 'closed'
+        ], 'id = ?', [$requestId]);
 
-    if (!$updateResult) {
-        throw new Exception('Error al actualizar la solicitud de servicio.');
+        if (!$updateResult) {
+            // Verificar si el registro existe
+            $exists = $db->selectOne("SELECT id FROM service_requests WHERE id = ?", [$requestId]);
+            if (!$exists) {
+                throw new Exception("La solicitud de servicio #$requestId no existe.");
+            }
+            
+            // Obtener información de error más específica
+            $pdo = $db->getConnection();
+            $errorInfo = $pdo->errorInfo();
+            throw new Exception('Error al actualizar la solicitud de servicio. Error SQL: ' . ($errorInfo[2] ?? 'Desconocido'));
+        }
+    } catch (Exception $e) {
+        throw new Exception('Error al actualizar la solicitud de servicio: ' . $e->getMessage());
     }
 
     // Obtener ticket creado
