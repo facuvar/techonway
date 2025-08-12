@@ -146,7 +146,8 @@ class Database {
         $sql = "UPDATE {$table} SET {$setClause} WHERE {$where}";
         
         $params = array_merge(array_values($data), $whereParams);
-        $this->query($sql, $params);
+        $stmt = $this->query($sql, $params);
+        return $stmt->rowCount() > 0; // Devolver true si se actualizó al menos una fila
     }
     
     public function delete($table, $where, $params = []) {
