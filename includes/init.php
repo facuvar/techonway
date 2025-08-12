@@ -7,8 +7,12 @@
 // Cargar configuración de zona horaria para Argentina
 require_once dirname(__FILE__) . '/timezone_config.php';
 
-// Start session if not already started
+// Configurar sesión antes de iniciarla
 if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+    // Configurar duración de sesión (8 horas)
+    ini_set('session.gc_maxlifetime', 28800);
+    ini_set('session.cookie_lifetime', 28800);
+    session_set_cookie_params(28800);
     session_start();
 }
 
