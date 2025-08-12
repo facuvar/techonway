@@ -1,15 +1,8 @@
-# Simplificar - usar solo PHP built-in server
-[variables]
-NIXPACKS_PHP_VERSION = "8.2"
-
 [phases.setup]
-nixPkgs = ["php82", "php82Packages.composer"]
-
-[phases.install]
-cmds = ["composer install --no-dev --optimize-autoloader"]
+nixPkgs = ['...', 'php82', 'php82Extensions.pdo', 'php82Extensions.pdo_mysql', 'php82Extensions.mbstring', 'php82Extensions.curl', 'php82Extensions.zip', 'php82Extensions.gd']
 
 [phases.build]
-cmds = ["echo 'PHP setup complete'"]
+cmds = ['echo "No build needed"']
 
 [start]
-cmd = "php -S 0.0.0.0:$PORT"
+cmd = 'php -S 0.0.0.0:$PORT'

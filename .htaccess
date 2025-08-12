@@ -1,22 +1,63 @@
-# Railway PHP configuration
+# TechonWay - Configuración para Railway
 RewriteEngine On
 
-# Redirect to index.php if file doesn't exist
+# Configuración PHP para Railway
+php_flag display_errors Off
+php_value max_execution_time 120
+php_value memory_limit 512M
+php_value post_max_size 32M
+php_value upload_max_filesize 16M
+php_flag log_errors On
+
+# Seguridad - Ocultar archivos sensibles
+<Files "config/local.php">
+    Deny from all
+</Files>
+<Files "database_backup.sql">
+    Deny from all
+</Files>
+<Files "*.log">
+    Deny from all
+</Files>
+
+# Manejar URLs amigables
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php?page=$1 [QSA,L]
+RewriteRule ^dashboard/?$ dashboard.php [L]
+RewriteRule ^login/?$ login.php [L]
+RewriteRule ^logout/?$ logout.php [L]
+RewriteRule ^admin/?$ admin/dashboard.php [L]
+RewriteRule ^admin/(.+)$ admin/$1 [L]
+RewriteRule ^technician/?$ technician/dashboard.php [L]
+RewriteRule ^technician/(.+)$ technician/$1 [L]
 
-# PHP FastCGI configuration
-<IfModule mod_fastcgi.c>
-    AddHandler php-fcgi .php
-    Action php-fcgi /php-fcgi
-    Alias /php-fcgi /usr/bin/php-cgi
-    FastCgiExternalServer /usr/bin/php-cgi -host 127.0.0.1:9000 -pass-header Authorization
-</IfModule>
+# Redirección del directorio raíz - ir directo a login
+DirectoryIndex login.php index.php
 
-# Security headers
+# Headers de seguridad
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options nosniff
-    Header always set X-Frame-Options DENY
+    Header always set X-Frame-Options SAMEORIGIN
     Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Compresión para mejor rendimiento
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/xml
+</IfModule>
+
+# Cache para archivos estáticos
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
 </IfModule>

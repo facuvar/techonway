@@ -44,7 +44,7 @@ require_once INCLUDE_PATH . '/Database.php';
 require_once INCLUDE_PATH . '/Auth.php';
 require_once INCLUDE_PATH . '/i18n.php';
 
-// Inicializar sistema de logs (DESACTIVADO temporalmente para debug)
+// Inicializar sistema de logs - Solo en local para evitar sobrecarga en VPS
 if ($isLocal) {
     require_once INCLUDE_PATH . '/Logger.php';
     Logger::init();
@@ -52,6 +52,11 @@ if ($isLocal) {
     // Registrar handlers para errores y excepciones automáticas
     set_error_handler(['Logger', 'logPhpError']);
     set_exception_handler(['Logger', 'logException']);
+} else {
+    // En servidor, solo cargar Logger sin inicializar
+    if (file_exists(INCLUDE_PATH . '/Logger.php')) {
+        require_once INCLUDE_PATH . '/Logger.php';
+    }
 }
 
 // Initialize auth

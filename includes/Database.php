@@ -36,6 +36,10 @@ class Database {
                         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                         PDO::ATTR_EMULATE_PREPARES => false,
+                        PDO::ATTR_PERSISTENT => false, // Evitar conexiones persistentes en VPS
+                        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8",
+                        PDO::ATTR_TIMEOUT => 30, // Timeout de conexión
+                        PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true
                     ]
                 ];
             }
@@ -51,8 +55,8 @@ class Database {
             ];
             
             $connection_error = null;
-            // Prevent too many connections
-            if (self::$connectionCount > 5) {
+            // Prevent too many connections - más restrictivo para VPS
+            if (self::$connectionCount > 2) {
                 throw new PDOException("Too many connection attempts. Server may be overloaded.");
             }
             
@@ -61,24 +65,32 @@ class Database {
             foreach ($dsn_variants as $dsn) {
                 try {
                     $this->connection = new PDO($dsn, $config['username'], $config['password'], $config['options']);
-                    Logger::database('Conexión exitosa a base de datos', [
-                        'host' => $config['host'],
-                        'database' => $config['dbname'],
-                        'charset' => $charset
-                    ]);
+                    // Solo log en desarrollo para evitar sobrecarga en VPS
+                    if (class_exists('Logger') && (isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'localhost') !== false)) {
+                        Logger::database('Conexión exitosa a base de datos', [
+                            'host' => $config['host'],
+                            'database' => $config['dbname'],
+                            'charset' => $charset
+                        ]);
+                    }
                     break; // Si funciona, salir del loop
                 } catch (PDOException $e) {
                     $connection_error = $e->getMessage();
-                    Logger::warning('Fallo en conexión a DB', [
-                        'dsn' => $dsn,
-                        'error' => $e->getMessage()
-                    ]);
-                    // Si es "too many connections", no seguir intentando
-                    if (strpos($e->getMessage(), 'Too many connections') !== false) {
-                        Logger::error('Too many connections en base de datos', [
-                            'connection_count' => self::$connectionCount,
+                    // Solo log en desarrollo
+                    if (class_exists('Logger') && (isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'localhost') !== false)) {
+                        Logger::warning('Fallo en conexión a DB', [
+                            'dsn' => $dsn,
                             'error' => $e->getMessage()
                         ]);
+                    }
+                    // Si es "too many connections", no seguir intentando
+                    if (strpos($e->getMessage(), 'Too many connections') !== false) {
+                        if (class_exists('Logger') && (isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'localhost') !== false)) {
+                            Logger::error('Too many connections en base de datos', [
+                                'connection_count' => self::$connectionCount,
+                                'error' => $e->getMessage()
+                            ]);
+                        }
                         throw new PDOException("Database server overloaded: " . $e->getMessage());
                     }
                     continue; // Probar siguiente variante
