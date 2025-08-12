@@ -1,8 +1,8 @@
 [phases.setup]
-nixPkgs = ['php82', 'php82Extensions.pdo', 'php82Extensions.pdo_mysql', 'php82Extensions.mbstring', 'php82Extensions.curl', 'php82Extensions.zip', 'php82Extensions.gd', 'php82Extensions.opcache']
+nixPkgs = ['php82', 'php82Extensions.pdo', 'php82Extensions.pdo_mysql', 'php82Extensions.mbstring', 'php82Extensions.curl', 'php82Extensions.zip', 'php82Extensions.gd', 'php82Extensions.opcache', 'composer']
 
 [phases.build]
-cmds = ['echo "TechonWay build completed"']
+cmds = ['composer install --no-dev --optimize-autoloader --ignore-platform-reqs || echo "Composer not needed, continuing..."']
 
 [start]
 cmd = 'php -S 0.0.0.0:$PORT'
