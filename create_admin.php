@@ -31,7 +31,25 @@ try {
         exit;
     }
     
-    // Datos del admin por defecto
+    // Primero verificar la estructura de la tabla users
+    echo "🔍 Verificando estructura de tabla users...\n";
+    $columns = $db->select("SHOW COLUMNS FROM users");
+    $hasAutoIncrement = false;
+    
+    foreach ($columns as $col) {
+        if ($col['Field'] === 'id' && strpos($col['Extra'], 'auto_increment') !== false) {
+            $hasAutoIncrement = true;
+            break;
+        }
+    }
+    
+    if (!$hasAutoIncrement) {
+        echo "🔧 Configurando AUTO_INCREMENT en tabla users...\n";
+        $db->query("ALTER TABLE users MODIFY id int(11) NOT NULL AUTO_INCREMENT");
+        echo "✅ AUTO_INCREMENT configurado\n";
+    }
+    
+    // Datos del admin por defecto (sin ID para que sea auto_increment)
     $adminData = [
         'name' => 'Administrador TechonWay',
         'email' => 'admin@techonway.com',
