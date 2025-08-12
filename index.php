@@ -26,10 +26,11 @@ if (isset($_GET['page'])) {
 
 // Mostrar página de diagnóstico solo si se solicita específicamente
 if (isset($_GET['debug']) && $_GET['debug'] === 'railway') {
-    echo "🚀 TechonWay está funcionando en Railway!\n\n";
+    echo "🚀 TechonWay está funcionando en Railway! (v2.1 - Logger Fix)\n\n";
     echo "✅ PHP Version: " . phpversion() . "\n";
     echo "✅ Document Root: " . $_SERVER['DOCUMENT_ROOT'] . "\n";
     echo "✅ Current Directory: " . getcwd() . "\n";
+    echo "✅ Logger Fix Applied: " . (class_exists('Logger') ? 'YES' : 'NO') . "\n";
     echo "\n🔗 Enlaces disponibles:\n";
     echo "   - <a href='/login.php'>Login</a>\n";
     echo "   - <a href='/import_database.php'>Importar Base de Datos</a>\n";
