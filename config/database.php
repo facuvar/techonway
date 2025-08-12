@@ -4,7 +4,8 @@
  */
 
 // Detectar si estamos en local o en servidor
-$isLocal = isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'localhost') !== false;
+$isLocal = (isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) 
+    || (php_sapi_name() === 'cli');
 
 // Cargar configuración local si existe (solo para desarrollo)
 $localConfig = null;
