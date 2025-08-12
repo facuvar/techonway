@@ -68,12 +68,19 @@ class WhatsAppNotifier {
         $phone = $this->formatPhoneNumber($technician['phone']);
         $this->logInfo("Enviando notificación a técnico: {$technician['name']} (ID: {$technician['id']}) - Teléfono formateado: {$phone}");
         
-        // Usar plantilla por defecto si no se especifica otra
-        $templateName = $templateName ?? $this->defaultTemplate;
-        $this->logInfo("Usando plantilla: {$templateName}");
+        // Crear mensaje de texto directo en lugar de usar plantillas
+        $clientName = $client['name'] ?? 'Cliente';
+        $clientAddress = $client['address'] ?? 'Dirección no especificada';
+        $ticketDescription = isset($ticket['description']) ? substr($ticket['description'], 0, 200) : 'Ver detalles en el sistema';
         
-        // Enviar la plantilla sin parámetros
-        return $this->sendTemplateMessage($phone, $templateName);
+        $message = "🎯 *NUEVO TICKET ASIGNADO* #{$ticket['id']}\n\n";
+        $message .= "👤 *Cliente:* {$clientName}\n";
+        $message .= "📍 *Dirección:* {$clientAddress}\n";
+        $message .= "📝 *Descripción:* {$ticketDescription}\n\n";
+        $message .= "⏰ *Fecha:* " . date('d/m/Y H:i') . "\n\n";
+        $message .= "Accede al sistema para más detalles y gestionar la visita.";
+        
+        return $this->sendTextMessage($phone, $message);
     }
     
     /**
@@ -223,6 +230,74 @@ class WhatsAppNotifier {
             file_put_contents($logFile, "Traza: " . $e->getTraceAsString() . "\n", FILE_APPEND);
             return false;
         }
+    }
+    
+    /**
+     * Envía un mensaje de texto simple a WhatsApp
+     * 
+     * @param string $to Número de teléfono del destinatario
+     * @param string $message Mensaje de texto a enviar
+     * @return bool Éxito o fracaso del envío
+     */
+    public function sendTextMessage($to, $message) {
+        $this->logInfo("Enviando mensaje de texto a: {$to}");
+        
+        // Datos para el mensaje
+        $data = [
+            'messaging_product' => 'whatsapp',
+            'recipient_type' => 'individual',
+            'to' => $to,
+            'type' => 'text',
+            'text' => [
+                'body' => $message
+            ]
+        ];
+        
+        $this->logInfo("Datos del mensaje: " . json_encode($data, JSON_PRETTY_PRINT));
+        
+        $headers = [
+            'Authorization: Bearer ' . $this->token,
+            'Content-Type: application/json'
+        ];
+        
+        $url = $this->apiUrl . $this->phoneNumberId . '/messages';
+        $this->logInfo("URL de la API: {$url}");
+        
+        // Configurar opciones de cURL
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        
+        // Ejecutar la solicitud
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+        
+        if ($curlError) {
+            $this->logError("Error de cURL: " . $curlError);
+            return false;
+        }
+        
+        $this->logInfo("Código HTTP: {$httpCode}");
+        $this->logInfo("Respuesta: " . $response);
+        
+        if ($httpCode === 200) {
+            $responseData = json_decode($response, true);
+            if (isset($responseData['messages']) && count($responseData['messages']) > 0) {
+                $this->logInfo("Mensaje de texto enviado correctamente a: {$to}");
+                return true;
+            }
+        }
+        
+        $this->logError("Error enviando mensaje de texto. HTTP: {$httpCode}, Respuesta: {$response}");
+        return false;
     }
     
     /**
