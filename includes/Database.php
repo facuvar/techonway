@@ -17,12 +17,14 @@ class Database {
                 // Fallback a configuración de servidor con config local si existe
                 $fallbackPassword = '';
                 
-                // Cargar configuración local si existe
-                $localConfigFile = BASE_PATH . '/config/local.php';
-                if (file_exists($localConfigFile)) {
-                    $localConfig = require $localConfigFile;
-                    if (isset($localConfig['database_server']['password'])) {
-                        $fallbackPassword = $localConfig['database_server']['password'];
+                // Cargar configuración local si existe (solo si BASE_PATH está definido)
+                if (defined('BASE_PATH')) {
+                    $localConfigFile = BASE_PATH . '/config/local.php';
+                    if (file_exists($localConfigFile)) {
+                        $localConfig = require $localConfigFile;
+                        if (isset($localConfig['database_server']['password'])) {
+                            $fallbackPassword = $localConfig['database_server']['password'];
+                        }
                     }
                 }
                 
@@ -65,31 +67,21 @@ class Database {
             foreach ($dsn_variants as $dsn) {
                 try {
                     $this->connection = new PDO($dsn, $config['username'], $config['password'], $config['options']);
-                    // Solo log en desarrollo para evitar sobrecarga en VPS
-                    if (class_exists('Logger') && (isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'localhost') !== false)) {
-                        Logger::database('Conexión exitosa a base de datos', [
-                            'host' => $config['host'],
-                            'database' => $config['dbname'],
-                            'charset' => $charset
-                        ]);
+                    // Conexión exitosa - solo log en desarrollo local
+                    if (function_exists('error_log')) {
+                        error_log("TechonWay: Database connection successful to {$config['host']}/{$config['dbname']}");
                     }
                     break; // Si funciona, salir del loop
                 } catch (PDOException $e) {
                     $connection_error = $e->getMessage();
-                    // Solo log en desarrollo
-                    if (class_exists('Logger') && (isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'localhost') !== false)) {
-                        Logger::warning('Fallo en conexión a DB', [
-                            'dsn' => $dsn,
-                            'error' => $e->getMessage()
-                        ]);
+                    // Log de error simple sin depender de Logger
+                    if (function_exists('error_log')) {
+                        error_log("TechonWay: Database connection failed - DSN: {$dsn} - Error: " . $e->getMessage());
                     }
                     // Si es "too many connections", no seguir intentando
                     if (strpos($e->getMessage(), 'Too many connections') !== false) {
-                        if (class_exists('Logger') && (isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'localhost') !== false)) {
-                            Logger::error('Too many connections en base de datos', [
-                                'connection_count' => self::$connectionCount,
-                                'error' => $e->getMessage()
-                            ]);
+                        if (function_exists('error_log')) {
+                            error_log("TechonWay: Too many database connections - Count: " . self::$connectionCount);
                         }
                         throw new PDOException("Database server overloaded: " . $e->getMessage());
                     }
