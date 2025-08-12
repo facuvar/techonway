@@ -44,7 +44,18 @@ try {
     }
     
     if (!$hasAutoIncrement) {
-        echo "🔧 Configurando AUTO_INCREMENT en tabla users...\n";
+        echo "🔧 Configurando AUTO_INCREMENT y PRIMARY KEY en tabla users...\n";
+        
+        // Primero agregar PRIMARY KEY si no existe
+        try {
+            $db->query("ALTER TABLE users ADD PRIMARY KEY (id)");
+            echo "✅ PRIMARY KEY agregado\n";
+        } catch (Exception $e) {
+            // Si ya existe PRIMARY KEY, continuar
+            echo "ℹ️  PRIMARY KEY ya existe\n";
+        }
+        
+        // Luego configurar AUTO_INCREMENT
         $db->query("ALTER TABLE users MODIFY id int(11) NOT NULL AUTO_INCREMENT");
         echo "✅ AUTO_INCREMENT configurado\n";
     }
