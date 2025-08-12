@@ -71,6 +71,13 @@ if ($sql_content === false) {
 
 echo "✅ Archivo SQL leído correctamente\n";
 
+// Limpiar el SQL para Railway - remover referencias a BD local
+$sql_content = str_replace('USE `techonway`;', '', $sql_content);
+$sql_content = str_replace('USE techonway;', '', $sql_content);
+$sql_content = preg_replace('/-- Database:\s+techonway.*\n/', '', $sql_content);
+
+echo "🔧 SQL limpiado para Railway\n";
+
 // Dividir en statements individuales
 $statements = array_filter(
     array_map('trim', explode(';', $sql_content)),
