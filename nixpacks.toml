@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ['php82', 'php82Extensions.pdo', 'php82Extensions.pdo_mysql', 'php82Extensions.mbstring', 'php82Extensions.curl', 'php82Extensions.zip', 'php82Extensions.gd', 'php82Extensions.opcache', 'composer']
+nixPkgs = ['php82', 'php82Extensions.pdo', 'php82Extensions.pdo_mysql', 'php82Extensions.mbstring', 'php82Extensions.curl', 'php82Extensions.zip', 'php82Extensions.gd', 'php82Extensions.opcache', 'php82Packages.composer']
 
 [phases.build]
 cmds = ['composer install --no-dev --optimize-autoloader --ignore-platform-reqs || echo "Composer not needed, continuing..."']
