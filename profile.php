@@ -72,28 +72,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Handle avatar upload
     if (isset($_POST['upload_avatar'])) {
-        if (!isset($_FILES['avatar']) || $_FILES['avatar']['error'] !== UPLOAD_ERR_OK) {
-            flash('Error al subir la imagen. Intente nuevamente.', 'danger');
-        } else {
-            $file = $_FILES['avatar'];
-            $allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
-            $mime = mime_content_type($file['tmp_name']);
-            if (!isset($allowed[$mime])) {
-                flash('Formato de imagen no válido. Solo JPG, PNG o WEBP.', 'danger');
-            } else if ($file['size'] > 2 * 1024 * 1024) {
-                flash('La imagen no puede superar los 2 MB.', 'danger');
-            } else {
-                // En lugar de guardar archivo, convertir a base64 para Railway
-                $imageData = file_get_contents($file['tmp_name']);
-                $base64 = base64_encode($imageData);
-                $dataUri = 'data:' . $mime . ';base64,' . $base64;
-                
-                // Guardar data URI en la base de datos
-                $db->update('users', ['avatar' => $dataUri], 'id = ?', [$userId]);
-                flash('Foto de perfil actualizada.', 'success');
-                // Refresh user
-                $user = $db->selectOne("SELECT * FROM users WHERE id = ?", [$userId]);
+        try {
+            if (!isset($_FILES['avatar']) || $_FILES['avatar']['error'] !== UPLOAD_ERR_OK) {
+                throw new Exception('Error al subir la imagen. Código de error: ' . ($_FILES['avatar']['error'] ?? 'desconocido'));
             }
+            
+            $file = $_FILES['avatar'];
+            
+            // Verificar tamaño antes de procesar
+            if ($file['size'] > 2 * 1024 * 1024) {
+                throw new Exception('La imagen no puede superar los 2 MB.');
+            }
+            
+            if ($file['size'] <= 0) {
+                throw new Exception('El archivo está vacío.');
+            }
+            
+            // Obtener tipo MIME de forma más segura
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mime = finfo_file($finfo, $file['tmp_name']);
+            finfo_close($finfo);
+            
+            if (!$mime) {
+                $mime = $file['type']; // Fallback al tipo reportado por el navegador
+            }
+            
+            $allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+            if (!in_array($mime, $allowed)) {
+                throw new Exception('Formato de imagen no válido. Solo JPG, PNG o WEBP permitidos. Tipo detectado: ' . $mime);
+            }
+            
+            // Leer archivo de forma más segura
+            if (!is_readable($file['tmp_name'])) {
+                throw new Exception('No se puede leer el archivo temporal.');
+            }
+            
+            $imageData = file_get_contents($file['tmp_name']);
+            if ($imageData === false) {
+                throw new Exception('Error al leer los datos de la imagen.');
+            }
+            
+            // Verificar que los datos no estén vacíos
+            if (empty($imageData)) {
+                throw new Exception('Los datos de la imagen están vacíos.');
+            }
+            
+            $base64 = base64_encode($imageData);
+            if ($base64 === false) {
+                throw new Exception('Error al codificar la imagen.');
+            }
+            
+            $dataUri = 'data:' . $mime . ';base64,' . $base64;
+            
+            // Verificar que el data URI no sea demasiado largo para la BD
+            if (strlen($dataUri) > 16777215) { // MEDIUMTEXT limit
+                throw new Exception('La imagen es demasiado grande para almacenar.');
+            }
+            
+            // Guardar data URI en la base de datos
+            $result = $db->update('users', ['avatar' => $dataUri], 'id = ?', [$userId]);
+            if (!$result) {
+                throw new Exception('Error al guardar la imagen en la base de datos.');
+            }
+            
+            flash('Foto de perfil actualizada correctamente.', 'success');
+            
+            // Refresh user data
+            $user = $db->selectOne("SELECT * FROM users WHERE id = ?", [$userId]);
+            
+        } catch (Exception $e) {
+            error_log("Error al subir avatar para usuario $userId: " . $e->getMessage());
+            flash('Error al subir la imagen: ' . $e->getMessage(), 'danger');
         }
     }
 }
