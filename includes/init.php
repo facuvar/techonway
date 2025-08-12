@@ -40,24 +40,24 @@ $isLocal = isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'localh
 if ($isLocal && file_exists(BASE_PATH . '/vendor/autoload.php')) {
     require_once BASE_PATH . '/vendor/autoload.php';
 }
-require_once INCLUDE_PATH . '/Database.php';
-require_once INCLUDE_PATH . '/Auth.php';
-require_once INCLUDE_PATH . '/i18n.php';
+
+// Cargar Logger PRIMERO para que esté disponible para Database y Auth
+if (file_exists(INCLUDE_PATH . '/Logger.php')) {
+    require_once INCLUDE_PATH . '/Logger.php';
+}
 
 // Inicializar sistema de logs - Solo en local para evitar sobrecarga en VPS
 if ($isLocal) {
-    require_once INCLUDE_PATH . '/Logger.php';
     Logger::init();
     
     // Registrar handlers para errores y excepciones automáticas
     set_error_handler(['Logger', 'logPhpError']);
     set_exception_handler(['Logger', 'logException']);
-} else {
-    // En servidor, solo cargar Logger sin inicializar
-    if (file_exists(INCLUDE_PATH . '/Logger.php')) {
-        require_once INCLUDE_PATH . '/Logger.php';
-    }
 }
+
+require_once INCLUDE_PATH . '/Database.php';
+require_once INCLUDE_PATH . '/Auth.php';
+require_once INCLUDE_PATH . '/i18n.php';
 
 // Initialize auth
 $auth = new Auth();
