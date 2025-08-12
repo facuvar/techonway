@@ -39,7 +39,7 @@
                  <i class="bi bi-list" style="font-size:1.25rem;"></i>
              </button>
              <a class="navbar-brand mb-0 h1 d-flex align-items-center" href="<?php echo BASE_URL; ?>dashboard.php">
-                 <img src="<?php echo BASE_URL; ?>/assets/img/logo.png" alt="Logo" style="height:28px;width:auto;"/>
+                 <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="Logo" style="height:28px;width:auto;"/>
              </a>
          </div>
      </nav>

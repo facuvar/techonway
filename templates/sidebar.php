@@ -1,5 +1,5 @@
 <div class="sidebar-header">
-    <img src="<?php echo BASE_URL; ?>/assets/img/logo.png" alt="TecLocator Logo" class="img-fluid" style="max-height: 50px;">
+    <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="TecLocator Logo" class="img-fluid" style="max-height: 50px;">
 </div>
 <div class="sidebar-user">
     <div class="user-info">
