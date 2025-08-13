@@ -286,11 +286,39 @@ body.login-page {
     background-color: #2D3142;
 }
 
+/* Fix background for login page - remove dark background from html/body */
+html:has(body.login-page),
+body.login-page {
+    background-color: transparent !important;
+}
+
+/* Apply the login background only to the body */
+body.login-page {
+    background-color: #2D3142 !important;
+}
+
 /* Ensure no top navbar or unwanted elements appear on login page */
 body.login-page .top-navbar,
 body.login-page .navbar,
 body.login-page nav {
     display: none !important;
+}
+
+/* Remove any potential top borders or lines on login page */
+body.login-page,
+body.login-page *,
+body.login-page *::before,
+body.login-page *::after {
+    border-top: none !important;
+}
+
+/* Ensure no sticky elements appear on login */
+body.login-page .top-navbar {
+    position: static !important;
+    height: 0 !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 /* Reset any potential margin/padding issues on login page */
