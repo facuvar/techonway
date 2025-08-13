@@ -286,6 +286,32 @@ body.login-page {
     background-color: #2D3142;
 }
 
+/* Ensure no top navbar or unwanted elements appear on login page */
+body.login-page .top-navbar,
+body.login-page .navbar,
+body.login-page nav {
+    display: none !important;
+}
+
+/* Reset any potential margin/padding issues on login page */
+body.login-page {
+    margin: 0 !important;
+    padding: 0 !important;
+    position: relative;
+}
+
+/* Override any global styles that might create unwanted space */
+body.login-page::before,
+body.login-page::after {
+    display: none !important;
+}
+
+/* Ensure container starts from top */
+body.login-page .container {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
 body.login-page .card,
 body.login-page .modal-content,
 body.login-page .list-group-item {
