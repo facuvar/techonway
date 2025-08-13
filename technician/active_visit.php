@@ -129,7 +129,7 @@ include_once '../templates/header.php';
                 </div>
                 <div class="card-body">
                     <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle"></i> <?php echo __('visits.finish.instructions', 'Para finalizar la visita, debe escanear el código QR que está físicamente pegado en el ascensor y estar a menos de 50 metros de la ubicación registrada.'); ?>
+                        <i class="bi bi-exclamation-triangle"></i> <?php echo __('visits.finish.instructions', 'Para finalizar la visita, debe presionar el botón FINALIZAR VISITA y estar a menos de 50 metros de la ubicación registrada.'); ?>
                     </div>
                     
                     <div class="d-grid gap-2">

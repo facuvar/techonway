@@ -402,7 +402,7 @@ return [
     'tech.dashboard.no_assigned_tickets' => 'You have no assigned tickets',
     'common.all' => 'All',
     'common.duration' => 'Duration',
-    'visits.finish.instructions' => 'To finish the visit, you must scan the QR code physically attached to the elevator and be within 50 meters of the registered location.',
+    'visits.finish.instructions' => 'To finish the visit, you must press the FINISH VISIT button and be within 50 meters of the registered location.',
 
     // Technician QR Scan
     'tech.scan_qr.title' => 'Scan QR',

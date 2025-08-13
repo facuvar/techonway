@@ -402,7 +402,7 @@ return [
     'tech.dashboard.no_assigned_tickets' => 'No tienes tickets asignados',
     'common.all' => 'Todos',
     'common.duration' => 'Duración',
-    'visits.finish.instructions' => 'Para finalizar la visita, debe escanear el código QR que está físicamente pegado en el ascensor y estar a menos de 50 metros de la ubicación registrada.',
+    'visits.finish.instructions' => 'Para finalizar la visita, debe presionar el botón FINALIZAR VISITA y estar a menos de 50 metros de la ubicación registrada.',
 
     // Technician QR Scan
     'tech.scan_qr.title' => 'Escanear QR',
