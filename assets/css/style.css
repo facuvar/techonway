@@ -539,3 +539,48 @@ body.has-sidebar .card .table {
         overflow-x: auto !important; /* override earlier overflow hidden */
     }
 }
+
+/* Password toggle button styles */
+.password-toggle-btn {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    border: none !important;
+    background: transparent !important;
+    color: #6c757d;
+    z-index: 10;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: color 0.2s ease;
+}
+
+.password-toggle-btn:hover {
+    color: #495057;
+    background: rgba(0,0,0,0.05) !important;
+}
+
+.password-toggle-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(79, 93, 117, 0.2);
+}
+
+/* Login page specific styles for password toggle */
+body.login-page .password-toggle-btn {
+    color: rgba(255,255,255,0.7);
+}
+
+body.login-page .password-toggle-btn:hover {
+    color: #ffffff;
+    background: rgba(255,255,255,0.1) !important;
+}
+
+body.login-page .password-toggle-btn:focus {
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
+}
+
+/* Ensure password input has space for the button */
+.position-relative .form-control.pe-5 {
+    padding-right: 3rem !important;
+}

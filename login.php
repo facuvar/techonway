@@ -125,7 +125,12 @@ $activeRole = $_GET['role'] ?? 'admin';
                                 
                                 <div class="mb-3">
                                     <label for="admin-password" class="form-label"><?php echo __('common.password', 'Contraseña'); ?></label>
-                                    <input type="password" class="form-control" id="admin-password" name="password" required>
+                                    <div class="position-relative">
+                                        <input type="password" class="form-control pe-5" id="admin-password" name="password" required>
+                                        <button type="button" class="password-toggle-btn" onclick="togglePassword('admin-password', this)">
+                                            <i class="bi bi-eye-slash"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 
                                 <div class="d-grid">
@@ -147,7 +152,12 @@ $activeRole = $_GET['role'] ?? 'admin';
                                 
                                 <div class="mb-3">
                                     <label for="technician-password" class="form-label"><?php echo __('common.password', 'Contraseña'); ?></label>
-                                    <input type="password" class="form-control" id="technician-password" name="password" required>
+                                    <div class="position-relative">
+                                        <input type="password" class="form-control pe-5" id="technician-password" name="password" required>
+                                        <button type="button" class="password-toggle-btn" onclick="togglePassword('technician-password', this)">
+                                            <i class="bi bi-eye-slash"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 
                                 <div class="d-grid">
@@ -164,6 +174,22 @@ $activeRole = $_GET['role'] ?? 'admin';
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// Toggle password visibility
+function togglePassword(inputId, button) {
+    const passwordInput = document.getElementById(inputId);
+    const icon = button.querySelector('i');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        icon.classList.remove('bi-eye-slash');
+        icon.classList.add('bi-eye');
+    } else {
+        passwordInput.type = 'password';
+        icon.classList.remove('bi-eye');
+        icon.classList.add('bi-eye-slash');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Login: Iniciando script de cambio de idioma');
     var sw = document.getElementById('langSwitchLogin');
