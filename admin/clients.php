@@ -1,19 +1,15 @@
 <?php
-/**
- * Clients Railway - Versión que funciona en Railway
- */
-
 // Manejo de sesiones simplificado para Railway
 session_start();
-
-// Si no hay sesión de admin, redirigir al login que funciona
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header('Location: /admin/force_login_and_calendar.php');
     exit();
 }
 
+// Cargar solo lo esencial
 require_once '../includes/Database.php';
 
+// Definir constantes esenciales que normalmente están en init.php
 if (!defined('BASE_URL')) {
     define('BASE_URL', '/');
 }
@@ -48,68 +44,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $existing = $db->selectOne("SELECT id FROM clients WHERE email = ?", [$email]);
                     }
                     if ($existing) {
-                        $emailExists = true;
                         $error = 'Ya existe un cliente con ese email';
                     }
                 }
                 
-                if (!$emailExists) {
+                if (!$error) {
                     if (isset($_POST['client_id']) && !empty($_POST['client_id'])) {
-                        // Update
-                        $clientId = $_POST['client_id'];
-                        $db->query("
-                            UPDATE clients SET 
-                                name = ?, 
-                                email = ?, 
-                                phone = ?, 
-                                business_name = ?,
-                                address = ?,
-                                zone = ?
-                            WHERE id = ?
-                        ", [$name, $email, $phone, $business_name, $address, $zone, $clientId]);
-                        $message = 'Cliente actualizado exitosamente';
+                        // Editar cliente existente
+                        $client_id = $_POST['client_id'];
+                        $db->update("UPDATE clients SET name = ?, email = ?, phone = ?, business_name = ?, address = ?, zone = ? WHERE id = ?", 
+                                   [$name, $email, $phone, $business_name, $address, $zone, $client_id]);
+                        $message = 'Cliente actualizado correctamente';
                     } else {
-                        // Insert
-                        $db->query("
-                            INSERT INTO clients (name, email, phone, business_name, address, zone) 
-                            VALUES (?, ?, ?, ?, ?, ?)
-                        ", [$name, $email, $phone, $business_name, $address, $zone]);
-                        $message = 'Cliente creado exitosamente';
+                        // Crear nuevo cliente
+                        $db->insert("INSERT INTO clients (name, email, phone, business_name, address, zone) VALUES (?, ?, ?, ?, ?, ?)", 
+                                   [$name, $email, $phone, $business_name, $address, $zone]);
+                        $message = 'Cliente creado correctamente';
                     }
-                    
-                    // Redirigir para evitar resubmit
-                    header('Location: ?action=list&msg=' . urlencode($message));
-                    exit();
+                    $action = 'list';
                 }
             }
         }
         
         if (isset($_POST['delete_client'])) {
-            $clientId = $_POST['client_id'] ?? null;
-            if ($clientId) {
-                // Verificar si tiene tickets asociados
-                $hasTickets = $db->selectOne("SELECT COUNT(*) as count FROM tickets WHERE client_id = ?", [$clientId]);
-                if ($hasTickets['count'] > 0) {
-                    $error = 'No se puede eliminar el cliente porque tiene tickets asociados';
-                } else {
-                    $db->query("DELETE FROM clients WHERE id = ?", [$clientId]);
-                    $message = 'Cliente eliminado exitosamente';
-                    header('Location: ?action=list&msg=' . urlencode($message));
-                    exit();
-                }
+            $client_id = $_POST['client_id'];
+            // Verificar si tiene tickets asociados
+            $tickets = $db->selectOne("SELECT COUNT(*) as count FROM tickets WHERE client_id = ?", [$client_id]);
+            if ($tickets['count'] > 0) {
+                $error = 'No se puede eliminar el cliente porque tiene tickets asociados';
+            } else {
+                $db->delete("DELETE FROM clients WHERE id = ?", [$client_id]);
+                $message = 'Cliente eliminado correctamente';
             }
+            $action = 'list';
         }
+        
     } catch (Exception $e) {
-        $error = 'Error al procesar: ' . $e->getMessage();
+        $error = 'Error: ' . $e->getMessage();
     }
 }
 
 // Obtener datos según la acción
-$client = null;
-$clients = [];
-
 try {
-    if ($action === 'edit' && isset($_GET['id'])) {
+    if ($action === 'edit') {
         $client = $db->selectOne("SELECT * FROM clients WHERE id = ?", [$_GET['id']]);
         if (!$client) {
             $error = 'Cliente no encontrado';
@@ -118,16 +95,8 @@ try {
     }
     
     if ($action === 'list') {
-        $search = $_GET['search'] ?? '';
-        if ($search) {
-            $clients = $db->select("
-                SELECT * FROM clients 
-                WHERE name LIKE ? OR email LIKE ? OR business_name LIKE ? OR address LIKE ?
-                ORDER BY name
-            ", ["%$search%", "%$search%", "%$search%", "%$search%"]);
-        } else {
-            $clients = $db->select("SELECT * FROM clients ORDER BY name");
-        }
+        // Obtener todos los clientes - manejo defensivo de columnas
+        $clients = $db->select("SELECT * FROM clients ORDER BY name");
     }
 } catch (Exception $e) {
     $error = 'Error de base de datos: ' . $e->getMessage();
@@ -144,275 +113,256 @@ if (isset($_GET['msg'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clientes - TechonWay</title>
+    <title>Sistema de Gestión de Tickets para Ascensores</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="/assets/css/style.css">
-    
-    <style>
-    /* Estilos del panel admin */
-    .sidebar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100vh;
-        width: 250px;
-        background: linear-gradient(180deg, #2D3142 0%, #3A3F58 100%);
-        color: white;
-        z-index: 1000;
-        overflow-y: auto;
-    }
-    .main-content {
-        margin-left: 250px;
-        min-height: 100vh;
-        background: #f8f9fa;
-    }
-    .sidebar .nav-link {
-        color: #bbb;
-        padding: 12px 20px;
-        text-decoration: none;
-    }
-    .sidebar .nav-link:hover {
-        background: rgba(91, 99, 134, 0.3);
-        color: white;
-    }
-    .sidebar .nav-link.active {
-        background: #5B6386;
-        color: white;
-    }
-    </style>
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
+    <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>assets/img/favicon.png">
 </head>
-<body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="p-3 text-center border-bottom">
-            <img src="/assets/img/logo.png" alt="Logo" style="max-height: 50px;">
-            <h5 class="mt-2 mb-0">TechonWay</h5>
+<body class="dark-mode has-sidebar">
+    <!-- Top Navbar (mobile) -->
+    <nav class="navbar top-navbar d-flex align-items-center px-3 d-md-none">
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-outline-light d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
+                <i class="bi bi-list" style="font-size:1.25rem;"></i>
+            </button>
+            <a class="navbar-brand mb-0 h1 d-flex align-items-center" href="<?php echo BASE_URL; ?>dashboard.php">
+                <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="Logo" style="height:28px;width:auto;"/>
+            </a>
         </div>
-        <div class="p-3 text-center border-bottom">
-            <i class="bi bi-person-circle" style="font-size:2.5rem;"></i>
-            <div class="mt-2"><?php echo $_SESSION['user_name']; ?></div>
-            <small class="text-light">Administrador</small>
+    </nav>
+    
+    <!-- Offcanvas Sidebar for mobile -->
+    <div class="offcanvas offcanvas-start mobile-sidebar" tabindex="-1" id="mobileSidebar">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title">Menú</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
         </div>
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link" href="/admin/dashboard.php">
-                    <i class="bi bi-speedometer2"></i> Dashboard
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link active" href="/admin/clients.php">
-                    <i class="bi bi-building"></i> Clientes
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/admin/technicians.php">
-                    <i class="bi bi-person-gear"></i> Técnicos
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/admin/tickets.php">
-                    <i class="bi bi-ticket-perforated"></i> Tickets
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/admin/calendar.php">
-                    <i class="bi bi-calendar-event"></i> Calendario
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/admin/visits.php">
-                    <i class="bi bi-clipboard-check"></i> Visitas
-                </a>
-            </li>
-        </ul>
+        <div class="offcanvas-body p-0">
+            <div class="sidebar-content">
+                <!-- Mobile sidebar content -->
+                <div class="text-center p-3">
+                    <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="TechonWay" style="height: 40px;">
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="/admin/dashboard.php">
+                        <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                    </a>
+                    <a class="nav-link active" href="/admin/clients.php">
+                        <i class="bi bi-people me-2"></i>Clientes
+                    </a>
+                    <a class="nav-link" href="/admin/tickets.php">
+                        <i class="bi bi-ticket-perforated me-2"></i>Tickets
+                    </a>
+                    <a class="nav-link" href="/admin/calendar.php">
+                        <i class="bi bi-calendar3 me-2"></i>Calendario
+                    </a>
+                    <a class="nav-link" href="/admin/visits.php">
+                        <i class="bi bi-geo-alt me-2"></i>Visitas
+                    </a>
+                    <a class="nav-link" href="/admin/users.php">
+                        <i class="bi bi-person-gear me-2"></i>Usuarios
+                    </a>
+                    <a class="nav-link" href="/admin/settings.php">
+                        <i class="bi bi-gear me-2"></i>Configuración
+                    </a>
+                    <hr>
+                    <a class="nav-link" href="/logout.php">
+                        <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                    </a>
+                </nav>
+            </div>
+        </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="container-fluid py-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1>👥 Gestión de Clientes</h1>
-                <?php if ($action === 'list'): ?>
-                <a href="?action=create" class="btn btn-success">
-                    <i class="bi bi-plus"></i> Crear Cliente
-                </a>
-                <?php endif; ?>
-            </div>
-
-            <!-- Mensajes -->
-            <?php if ($message): ?>
-            <div class="alert alert-success alert-dismissible fade show">
-                <?php echo htmlspecialchars($message); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            <?php endif; ?>
-
-            <?php if ($error): ?>
-            <div class="alert alert-danger alert-dismissible fade show">
-                <?php echo htmlspecialchars($error); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            <?php endif; ?>
-
-            <?php if ($action === 'list'): ?>
-            <!-- Búsqueda -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <form method="GET" class="row g-3">
-                        <div class="col-md-10">
-                            <input type="text" name="search" class="form-control" placeholder="Buscar por nombre, email, empresa o dirección..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
-                        </div>
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="bi bi-search"></i> Buscar
-                            </button>
-                        </div>
-                    </form>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 px-0 sidebar d-none d-md-block">
+                <div class="sidebar-brand text-center p-3">
+                    <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="TechonWay" style="height: 50px;">
                 </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="/admin/dashboard.php">
+                        <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                    </a>
+                    <a class="nav-link active" href="/admin/clients.php">
+                        <i class="bi bi-people me-2"></i>Clientes
+                    </a>
+                    <a class="nav-link" href="/admin/tickets.php">
+                        <i class="bi bi-ticket-perforated me-2"></i>Tickets
+                    </a>
+                    <a class="nav-link" href="/admin/calendar.php">
+                        <i class="bi bi-calendar3 me-2"></i>Calendario
+                    </a>
+                    <a class="nav-link" href="/admin/visits.php">
+                        <i class="bi bi-geo-alt me-2"></i>Visitas
+                    </a>
+                    <a class="nav-link" href="/admin/users.php">
+                        <i class="bi bi-person-gear me-2"></i>Usuarios
+                    </a>
+                    <a class="nav-link" href="/admin/settings.php">
+                        <i class="bi bi-gear me-2"></i>Configuración
+                    </a>
+                    <hr>
+                    <a class="nav-link" href="/logout.php">
+                        <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                    </a>
+                </nav>
             </div>
-
-            <!-- Lista de Clientes -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Lista de Clientes (<?php echo count($clients); ?>)</h5>
-                </div>
-                <div class="card-body">
-                    <?php if (!empty($clients)): ?>
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nombre</th>
-                                    <th>Email</th>
-                                    <th>Teléfono</th>
-                                    <th>Empresa</th>
-                                    <th>Dirección</th>
-                                    <th>Zona</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($clients as $c): ?>
-                                <tr>
-                                    <td><?php echo $c['id']; ?></td>
-                                    <td><?php echo htmlspecialchars($c['name']); ?></td>
-                                    <td>
-                                        <?php if ($c['email']): ?>
-                                            <a href="mailto:<?php echo htmlspecialchars($c['email']); ?>">
-                                                <?php echo htmlspecialchars($c['email']); ?>
-                                            </a>
-                                        <?php else: ?>
-                                            <span class="text-muted">Sin email</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td><?php echo htmlspecialchars($c['phone'] ?: 'Sin teléfono'); ?></td>
-                                    <td><?php echo htmlspecialchars($c['business_name'] ?: '-'); ?></td>
-                                    <td><?php echo htmlspecialchars($c['address'] ?: '-'); ?></td>
-                                    <td><?php echo htmlspecialchars($c['zone'] ?: '-'); ?></td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="?action=edit&id=<?php echo $c['id']; ?>" class="btn btn-outline-primary">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <button type="button" class="btn btn-outline-danger" onclick="confirmDelete(<?php echo $c['id']; ?>, '<?php echo htmlspecialchars($c['name']); ?>')">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                    <?php else: ?>
-                    <p class="text-muted">No hay clientes registrados.</p>
+            <!-- Main content -->
+            <div class="col-12 col-md-9 col-lg-10 ms-auto main-content">
+                
+                <!-- Clients Content -->
+                <div class="container-fluid py-4">
+                    <?php if ($message): ?>
+                        <div class="alert alert-success alert-dismissible fade show">
+                            <?php echo htmlspecialchars($message); ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
                     <?php endif; ?>
-                </div>
-            </div>
-
-            <?php else: ?>
-            <!-- Formulario Crear/Editar -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <?php echo $action === 'edit' ? 'Editar Cliente #' . $client['id'] : 'Crear Nuevo Cliente'; ?>
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST">
-                        <?php if ($action === 'edit'): ?>
-                        <input type="hidden" name="client_id" value="<?php echo $client['id']; ?>">
-                        <?php endif; ?>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Nombre *</label>
-                                    <input type="text" name="name" class="form-control" required
-                                           value="<?php echo $client ? htmlspecialchars($client['name']) : ''; ?>">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" name="email" class="form-control"
-                                           value="<?php echo $client ? htmlspecialchars($client['email']) : ''; ?>">
-                                    <div class="form-text">Opcional - debe ser único si se proporciona</div>
+                    
+                    <?php if ($error): ?>
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <?php echo htmlspecialchars($error); ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <?php if ($action === 'list'): ?>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h1>👥 Gestión de Clientes</h1>
+                            <a href="?action=create" class="btn btn-success">
+                                <i class="bi bi-plus"></i> Crear Cliente
+                            </a>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Nombre</th>
+                                                <th>Email</th>
+                                                <th>Teléfono</th>
+                                                <th>Empresa</th>
+                                                <th>Dirección</th>
+                                                <th>Zona</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($clients as $c): ?>
+                                            <tr>
+                                                <td><?php echo $c['id']; ?></td>
+                                                <td><?php echo htmlspecialchars($c['name']); ?></td>
+                                                <td>
+                                                    <?php if (isset($c['email']) && $c['email']): ?>
+                                                        <a href="mailto:<?php echo htmlspecialchars($c['email']); ?>">
+                                                            <?php echo htmlspecialchars($c['email']); ?>
+                                                        </a>
+                                                    <?php else: ?>
+                                                        <span class="text-muted">Sin email</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td><?php echo htmlspecialchars((isset($c['phone']) ? $c['phone'] : null) ?: 'Sin teléfono'); ?></td>
+                                                <td><?php echo htmlspecialchars((isset($c['business_name']) ? $c['business_name'] : null) ?: '-'); ?></td>
+                                                <td><?php echo htmlspecialchars((isset($c['address']) ? $c['address'] : null) ?: '-'); ?></td>
+                                                <td><?php echo htmlspecialchars((isset($c['zone']) ? $c['zone'] : null) ?: '-'); ?></td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="?action=edit&id=<?php echo $c['id']; ?>" class="btn btn-outline-primary">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </a>
+                                                        <button type="button" class="btn btn-outline-danger" onclick="confirmDelete(<?php echo $c['id']; ?>, '<?php echo htmlspecialchars($c['name']); ?>')">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Teléfono</label>
-                                    <input type="tel" name="phone" class="form-control"
-                                           value="<?php echo $client ? htmlspecialchars($client['phone']) : ''; ?>">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Empresa/Negocio</label>
-                                    <input type="text" name="business_name" class="form-control"
-                                           value="<?php echo $client ? htmlspecialchars($client['business_name']) : ''; ?>">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-8">
-                                <div class="mb-3">
-                                    <label class="form-label">Dirección</label>
-                                    <textarea name="address" class="form-control" rows="2"><?php echo $client ? htmlspecialchars($client['address']) : ''; ?></textarea>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label">Zona</label>
-                                    <input type="text" name="zone" class="form-control"
-                                           value="<?php echo $client ? htmlspecialchars($client['zone']) : ''; ?>">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex gap-2">
-                            <button type="submit" name="save_client" class="btn btn-success">
-                                <i class="bi bi-check"></i> Guardar Cliente
-                            </button>
+                        
+                    <?php elseif ($action === 'create' || $action === 'edit'): ?>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h1><?php echo $action === 'edit' ? '✏️ Editar Cliente' : '➕ Crear Cliente'; ?></h1>
                             <a href="?action=list" class="btn btn-secondary">
                                 <i class="bi bi-arrow-left"></i> Volver
                             </a>
                         </div>
-                    </form>
+                        
+                        <div class="card">
+                            <div class="card-body">
+                                <form method="POST">
+                                    <?php if ($action === 'edit'): ?>
+                                        <input type="hidden" name="client_id" value="<?php echo $client['id']; ?>">
+                                    <?php endif; ?>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="name" class="form-label">Nombre *</label>
+                                            <input type="text" class="form-control" id="name" name="name" 
+                                                   value="<?php echo $action === 'edit' ? htmlspecialchars($client['name']) : ''; ?>" required>
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <label for="email" class="form-label">Email</label>
+                                            <input type="email" class="form-control" id="email" name="email" 
+                                                   value="<?php echo $action === 'edit' ? htmlspecialchars($client['email'] ?? '') : ''; ?>">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="phone" class="form-label">Teléfono</label>
+                                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                                   value="<?php echo $action === 'edit' ? htmlspecialchars($client['phone'] ?? '') : ''; ?>">
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <label for="business_name" class="form-label">Nombre de la Empresa</label>
+                                            <input type="text" class="form-control" id="business_name" name="business_name" 
+                                                   value="<?php echo $action === 'edit' ? htmlspecialchars($client['business_name'] ?? '') : ''; ?>">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-8 mb-3">
+                                            <label for="address" class="form-label">Dirección</label>
+                                            <textarea class="form-control" id="address" name="address" rows="2"><?php echo $action === 'edit' ? htmlspecialchars($client['address'] ?? '') : ''; ?></textarea>
+                                        </div>
+                                        
+                                        <div class="col-md-4 mb-3">
+                                            <label for="zone" class="form-label">Zona</label>
+                                            <input type="text" class="form-control" id="zone" name="zone" 
+                                                   value="<?php echo $action === 'edit' ? htmlspecialchars($client['zone'] ?? '') : ''; ?>">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" name="save_client" class="btn btn-primary">
+                                            <i class="bi bi-check"></i> Guardar
+                                        </button>
+                                        <a href="?action=list" class="btn btn-secondary">
+                                            <i class="bi bi-x"></i> Cancelar
+                                        </a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
-            <?php endif; ?>
         </div>
     </div>
-
-    <!-- Modal de confirmación de eliminación -->
+    
+    <!-- Modal de confirmación para eliminar -->
     <div class="modal fade" id="deleteModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -421,25 +371,26 @@ if (isset($_GET['msg'])) {
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p>¿Estás seguro de que quieres eliminar al cliente <strong id="clientName"></strong>?</p>
-                    <p class="text-danger"><small>Esta acción no se puede deshacer.</small></p>
+                    ¿Está seguro que desea eliminar el cliente "<span id="clientName"></span>"?
                 </div>
                 <div class="modal-footer">
-                    <form method="POST" id="deleteForm">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form method="POST" style="display: inline;">
                         <input type="hidden" name="client_id" id="deleteClientId">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" name="delete_client" class="btn btn-danger">Eliminar</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-
+    
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
     function confirmDelete(clientId, clientName) {
-        document.getElementById('deleteClientId').value = clientId;
         document.getElementById('clientName').textContent = clientName;
+        document.getElementById('deleteClientId').value = clientId;
         new bootstrap.Modal(document.getElementById('deleteModal')).show();
     }
     </script>
