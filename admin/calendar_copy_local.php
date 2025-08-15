@@ -6,19 +6,17 @@
 // EXACTAMENTE como funciona en local - paso por paso
 session_start();
 
-// Debug 1: Ver estado inicial de sesión
-echo "<!-- DEBUG SESSION START -->";
-echo "<!-- Session ID: " . session_id() . " -->";
-echo "<!-- User ID: " . ($_SESSION['user_id'] ?? 'NO DEFINIDO') . " -->";
-echo "<!-- Role: " . ($_SESSION['role'] ?? 'NO DEFINIDO') . " -->";
-echo "<!-- DEBUG SESSION END -->";
-
 // Si no hay sesión, redirigir al login (EXACTAMENTE como local)
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     // Redirigir al login
     header('Location: /index.php');
     exit();
 }
+
+// Debug después del check de sesión
+$debug_session_id = session_id();
+$debug_user_id = $_SESSION['user_id'] ?? 'NO DEFINIDO';
+$debug_role = $_SESSION['role'] ?? 'NO DEFINIDO';
 
 // Cargar includes DESPUÉS de verificar sesión
 require_once '../includes/Database.php';
@@ -65,6 +63,7 @@ try {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Calendario - TechonWay</title>
+        <!-- DEBUG SESSION: ID=<?php echo $debug_session_id; ?>, User=<?php echo $debug_user_id; ?>, Role=<?php echo $debug_role; ?> -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <style>
         .calendar-table { background-color: #B9C3C6; }
