@@ -52,7 +52,24 @@ if (!function_exists('getFlash')) {
 
 if (!function_exists('__')) {
     function __($key, $default = '') {
-        return $default ?: $key; // Simple implementation
+        // Mapeo de textos comunes del sidebar
+        $translations = [
+            'sidebar.dashboard' => 'Dashboard',
+            'sidebar.clients' => 'Clientes',
+            'sidebar.technicians' => 'Técnicos',
+            'sidebar.admins' => 'Administradores',
+            'sidebar.tickets' => 'Tickets',
+            'sidebar.service_requests' => 'Solicitudes de Servicio',
+            'sidebar.visits' => 'Visitas',
+            'sidebar.import_clients' => 'Importar Clientes',
+            'sidebar.profile' => 'Mi Perfil',
+            'sidebar.logout' => 'Cerrar Sesión',
+            'sidebar.language' => 'Idioma',
+            'language.es' => 'Español',
+            'language.en' => 'Inglés'
+        ];
+        
+        return $translations[$key] ?? $default ?: $key;
     }
 }
 
