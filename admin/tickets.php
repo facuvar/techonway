@@ -19,7 +19,7 @@ if (isset($_GET['token']) && $_GET['token'] === 'dashboard_access') {
 }
 
 if (!$validAccess) {
-    header('Location: /admin/dashboard_railway.php?token=dashboard_access');
+    header('Location: /admin/force_login_and_calendar.php');
     exit();
 }
 
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if (empty($clientId) || empty($description)) {
                 $error = 'Cliente y descripción son requeridos';
-                        } else {
+            } else {
                 if (isset($_POST['ticket_id']) && !empty($_POST['ticket_id'])) {
                     // Update
                     $ticketId = $_POST['ticket_id'];
@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         WHERE id = ?
                     ", [$clientId, $assignedTo, $description, $priority, $scheduledDate, $scheduledTime, $securityCode, $ticketId]);
                     $message = 'Ticket actualizado exitosamente';
-            } else {
+                } else {
                     // Insert
                     $db->query("
                         INSERT INTO tickets (client_id, assigned_to, description, priority, scheduled_date, scheduled_time, security_code, status) 
@@ -79,12 +79,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 
                 // Redirigir para evitar resubmit
-                $tokenParam = isset($_GET['token']) ? '&token=' . $_GET['token'] : '';
-                header('Location: ?action=list&msg=' . urlencode($message) . $tokenParam);
+                header('Location: ?action=list&msg=' . urlencode($message));
                 exit();
             }
-                        }
-                    } catch (Exception $e) {
+        }
+    } catch (Exception $e) {
         $error = 'Error al guardar ticket: ' . $e->getMessage();
     }
 }
@@ -104,15 +103,15 @@ try {
     
     if ($action === 'list') {
         $tickets = $db->select("
-        SELECT t.*, 
-               c.name as client_name, 
-               c.business_name, 
+            SELECT t.*, 
+                   c.name as client_name, 
+                   c.business_name,
                    CONCAT(u.name, ' ', COALESCE(u.last_name, '')) as technician_name
-        FROM tickets t
+            FROM tickets t
             LEFT JOIN clients c ON t.client_id = c.id
             LEFT JOIN users u ON t.assigned_to = u.id
-        ORDER BY t.created_at DESC
-    ");
+            ORDER BY t.created_at DESC
+        ");
     }
 } catch (Exception $e) {
     $error = 'Error de base de datos: ' . $e->getMessage();
@@ -225,15 +224,15 @@ if (isset($_GET['msg'])) {
 
     <!-- Main Content -->
     <div class="main-content">
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="container-fluid py-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1>🎫 Gestión de Tickets</h1>
-        <?php if ($action === 'list'): ?>
+                <?php if ($action === 'list'): ?>
                 <a href="?action=create" class="btn btn-success">
                     <i class="bi bi-plus"></i> Crear Ticket
-            </a>
-        <?php endif; ?>
-    </div>
+                </a>
+                <?php endif; ?>
+            </div>
 
             <!-- Mensajes -->
             <?php if ($message): ?>
@@ -249,14 +248,14 @@ if (isset($_GET['msg'])) {
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
             <?php endif; ?>
-    
-    <?php if ($action === 'list'): ?>
+
+            <?php if ($action === 'list'): ?>
             <!-- Lista de Tickets -->
-        <div class="card">
+            <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0">Lista de Tickets</h5>
                 </div>
-            <div class="card-body">
+                <div class="card-body">
                     <?php if (!empty($tickets)): ?>
                     <div class="table-responsive">
                         <table class="table table-striped">
@@ -289,8 +288,8 @@ if (isset($_GET['msg'])) {
                                                 ($t['status'] === 'in_progress' ? 'warning' : 'secondary'); 
                                         ?>">
                                             <?php echo ucfirst($t['status']); ?>
-                                            </span>
-                                        </td>
+                                        </span>
+                                    </td>
                                     <td>
                                         <?php if ($t['scheduled_date']): ?>
                                             <small>
@@ -306,75 +305,75 @@ if (isset($_GET['msg'])) {
                                     </td>
                                     <td>
                                         <a href="?action=edit&id=<?php echo $t['id']; ?>" class="btn btn-sm btn-outline-primary">
-                                                    <i class="bi bi-pencil"></i>
-                                                </a>
-                                        </td>
-                                    </tr>
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </td>
+                                </tr>
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
                     </div>
-                <?php else: ?>
+                    <?php else: ?>
                     <p class="text-muted">No hay tickets registrados.</p>
-                <?php endif; ?>
+                    <?php endif; ?>
+                </div>
             </div>
-        </div>
-        
+
             <?php else: ?>
             <!-- Formulario Crear/Editar -->
-        <div class="card">
+            <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0">
                         <?php echo $action === 'edit' ? 'Editar Ticket #' . $ticket['id'] : 'Crear Nuevo Ticket'; ?>
                     </h5>
                 </div>
-            <div class="card-body">
+                <div class="card-body">
                     <form method="POST">
-                    <?php if ($action === 'edit'): ?>
+                        <?php if ($action === 'edit'): ?>
                         <input type="hidden" name="ticket_id" value="<?php echo $ticket['id']; ?>">
-                    <?php endif; ?>
-                    
+                        <?php endif; ?>
+
                         <div class="row">
-                        <div class="col-md-6">
+                            <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Cliente *</label>
                                     <select name="client_id" class="form-select" required>
                                         <option value="">Seleccionar cliente...</option>
-                                <?php foreach ($clients as $client): ?>
-                                    <option value="<?php echo $client['id']; ?>" 
+                                        <?php foreach ($clients as $client): ?>
+                                        <option value="<?php echo $client['id']; ?>" 
                                                 <?php echo ($ticket && $ticket['client_id'] == $client['id']) ? 'selected' : ''; ?>>
                                             <?php echo htmlspecialchars($client['name']); ?>
                                             <?php if ($client['business_name']): ?>
                                             - <?php echo htmlspecialchars($client['business_name']); ?>
                                             <?php endif; ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                                        </option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
-                        </div>
-                        <div class="col-md-6">
+                            </div>
+                            <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Técnico Asignado</label>
                                     <select name="assigned_to" class="form-select">
                                         <option value="">Sin asignar</option>
-                                <?php foreach ($technicians as $tech): ?>
-                                    <option value="<?php echo $tech['id']; ?>" 
+                                        <?php foreach ($technicians as $tech): ?>
+                                        <option value="<?php echo $tech['id']; ?>"
                                                 <?php echo ($ticket && $ticket['assigned_to'] == $tech['id']) ? 'selected' : ''; ?>>
                                             <?php echo htmlspecialchars($tech['name'] . ' ' . ($tech['last_name'] ?: '')); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                                        </option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="mb-3">
+
+                        <div class="mb-3">
                             <label class="form-label">Descripción *</label>
                             <textarea name="description" class="form-control" rows="3" required><?php echo $ticket ? htmlspecialchars($ticket['description']) : ''; ?></textarea>
-                    </div>
-                    
-                            <div class="row">
-                                <div class="col-md-4">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label">Prioridad</label>
                                     <select name="priority" class="form-select">
@@ -384,8 +383,8 @@ if (isset($_GET['msg'])) {
                                         <option value="urgent" <?php echo ($ticket && $ticket['priority'] === 'urgent') ? 'selected' : ''; ?>>Urgente</option>
                                     </select>
                                 </div>
-                                </div>
-                                <div class="col-md-4">
+                            </div>
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label">Fecha de la Cita</label>
                                     <input type="date" name="scheduled_date" class="form-control" 
@@ -397,10 +396,10 @@ if (isset($_GET['msg'])) {
                                     <label class="form-label">Hora de la Cita</label>
                                     <input type="time" name="scheduled_time" class="form-control" 
                                            value="<?php echo $ticket ? $ticket['scheduled_time'] : ''; ?>">
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    
+
                         <div class="d-flex gap-2">
                             <button type="submit" name="save_ticket" class="btn btn-success">
                                 <i class="bi bi-check"></i> Guardar Ticket
@@ -408,14 +407,14 @@ if (isset($_GET['msg'])) {
                             <a href="?action=list" class="btn btn-secondary">
                                 <i class="bi bi-arrow-left"></i> Volver
                             </a>
-                    </div>
-                </form>
-            </div>
-                            </div>
-                        <?php endif; ?>
-                    </div>
+                        </div>
+                    </form>
                 </div>
-                
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
