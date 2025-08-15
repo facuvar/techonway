@@ -112,15 +112,9 @@ if (!isset($GLOBALS['extra_css'])) {
     $GLOBALS['extra_css'] = [];
 }
 $GLOBALS['extra_css'][] = '<style>
-/* Estilos del calendario TechonWay - v1.3 FORCE DEPLOY */
+/* Estilos del calendario TechonWay - CORREGIDO */
 
-/* Fondo gris para toda la página - MUY IMPORTANTE */
-body, .main-content, .container-fluid {
-    background-color: #f8f9fa !important;
-    min-height: 100vh !important;
-}
-
-/* Botones de navegación del mes - ESPECÍFICOS */
+/* SOLO botones de navegación del mes */
 a.btn-month-nav, .btn-month-nav {
     background-color: #505775 !important;
     color: white !important;
@@ -137,11 +131,21 @@ a.btn-month-nav:hover, .btn-month-nav:hover {
     background-color: #3d4258 !important;
     color: white !important;
     text-decoration: none !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
 }
 
-/* Estilos de las citas */
+/* SOLO cabeceras de tabla #505775 */
+table.calendar-table thead th,
+.calendar-table thead th,
+.table thead th {
+    background-color: #505775 !important;
+    color: white !important;
+    border: 1px solid #505775 !important;
+    font-weight: 600 !important;
+    text-align: center !important;
+    padding: 12px 8px !important;
+}
+
+/* Estilos de las citas (mantener) */
 .appointment {
     background-color: #5B6386;
     color: white;
@@ -157,17 +161,15 @@ a.btn-month-nav:hover, .btn-month-nav:hover {
     font-weight: normal;
 }
 
-/* Tabla del calendario */
+/* Tabla del calendario (mantener sin fondo blanco) */
 .calendar-table {
     background-color: #B9C3C6;
-    border: 1px solid #505775;
 }
 .calendar-table td {
     vertical-align: top;
     height: 120px;
     width: 14.28%;
     position: relative;
-    border: 1px solid #505775;
 }
 .calendar-table .day-number {
     font-weight: bold;
@@ -181,104 +183,10 @@ a.btn-month-nav:hover, .btn-month-nav:hover {
     background-color: #fff3cd;
     border: 2px solid #ffc107;
 }
-
-/* Cabecera y pie de tabla - MUY ESPECÍFICO */
-table.calendar-table thead th,
-.calendar-table thead th,
-.table.calendar-table thead th {
-    background-color: #505775 !important;
-    color: white !important;
-    border: 1px solid #505775 !important;
-    font-weight: 600 !important;
-    text-align: center !important;
-    padding: 12px 8px !important;
-}
-table.calendar-table tfoot th,
-table.calendar-table tfoot td,
-.calendar-table tfoot th,
-.calendar-table tfoot td {
-    background-color: #505775 !important;
-    color: white !important;
-    border: 1px solid #505775 !important;
-}
-
-/* Tabla de resumen de citas - ESPECÍFICO */
-.table thead th,
-table.table thead th {
-    background-color: #505775 !important;
-    color: white !important;
-    border-color: #505775 !important;
-}
-
-/* Card del calendario */
-.card {
-    border: 1px solid #dee2e6;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-.card-header {
-    background-color: #505775;
-    color: white;
-    border-bottom: 1px solid #505775;
-}
-.card-header h5 {
-    color: white;
-    margin: 0;
-}
-
-/* Botones de acción */
-.btn-primary {
-    background-color: #505775;
-    border-color: #505775;
-}
-.btn-primary:hover {
-    background-color: #3d4258;
-    border-color: #3d4258;
-}
-.btn-success {
-    background-color: #28a745;
-    border-color: #28a745;
-}
-.btn-success:hover {
-    background-color: #218838;
-    border-color: #1e7e34;
-}
 </style>';
 
 // Include header
 include_once '../templates/header.php';
-
-// Agregar CSS adicional directamente al head después de cargar
-echo '<style>
-/* CSS CRÍTICO PARA CALENDARIO - PRIORIDAD MÁXIMA */
-body, .main-content, .container-fluid, .py-4 {
-    background-color: #f8f9fa !important;
-}
-
-/* Enlaces de navegación convertidos a botones */
-a[href*="month"], .btn-month-nav {
-    background-color: #505775 !important;
-    color: white !important;
-    padding: 8px 16px !important;
-    text-decoration: none !important;
-    border-radius: 6px !important;
-    display: inline-block !important;
-    border: none !important;
-    font-weight: 500 !important;
-}
-
-a[href*="month"]:hover, .btn-month-nav:hover {
-    background-color: #3d4258 !important;
-    color: white !important;
-    text-decoration: none !important;
-}
-
-/* Cabeceras de tabla específicas */
-table thead th, .table thead th, .calendar-table thead th {
-    background-color: #505775 !important;
-    color: white !important;
-    border: 1px solid #505775 !important;
-}
-</style>';
 ?>
 
 <div class="container-fluid py-4">
