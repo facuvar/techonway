@@ -178,3 +178,20 @@ ol {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 </style>
+
+    margin: 8px 0; 
+    line-height: 1.4;
+}
+code {
+    background: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: monospace;
+}
+ol {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+</style>

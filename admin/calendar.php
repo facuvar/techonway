@@ -6,12 +6,14 @@ session_start();
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
     $_SESSION['user_id'] = 1;
     $_SESSION['role'] = 'admin';
-    $_SESSION['user_name'] = 'Admin Railway';
+    $_SESSION['user_name'] = 'Administrador TechonWay';
     $_SESSION['user_email'] = 'admin@techonway.com';
+    $_SESSION['user_role'] = 'admin';
 }
 
 // Cargar solo lo esencial
 require_once '../includes/Database.php';
+require_once '../includes/Auth.php';
 
 // Definir constantes esenciales que normalmente están en init.php
 if (!defined('BASE_URL')) {
@@ -24,28 +26,35 @@ if (!defined('TEMPLATE_PATH')) {
     define('TEMPLATE_PATH', BASE_PATH . '/templates');
 }
 
-// Simular funciones esenciales
-function __($key, $default = null) {
-    return $default ?: $key;
+// Initialize auth
+$auth = new Auth();
+$pageTitle = 'Calendario de Citas';
+
+// Funciones básicas necesarias
+if (!function_exists('escape')) {
+    function escape($string) {
+        return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
+    }
 }
 
-function escape($value) {
-    return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+if (!function_exists('isActive')) {
+    function isActive($page) {
+        $currentPage = basename($_SERVER['PHP_SELF']);
+        return $currentPage === $page ? 'active' : '';
+    }
 }
 
-function isActive($page) {
-    $current = basename($_SERVER['REQUEST_URI']);
-    return (strpos($current, $page) !== false) ? 'active' : '';
+if (!function_exists('getFlash')) {
+    function getFlash() {
+        return null; // Simple implementation
+    }
 }
 
-function getFlash() {
-    return null; // Sin flash messages por simplicidad
+if (!function_exists('__')) {
+    function __($key, $default = '') {
+        return $default ?: $key; // Simple implementation
+    }
 }
-
-// Simular objeto auth
-$auth = new stdClass();
-$auth->isLoggedIn = function() { return isset($_SESSION['user_id']); };
-$auth->isAdmin = function() { return $_SESSION['role'] === 'admin'; };
 
 try {
 $db = Database::getInstance();
@@ -62,14 +71,16 @@ $startDate = sprintf('%04d-%02d-01', $year, $month);
 
 $scheduledTickets = $db->select("
         SELECT t.id, t.scheduled_date, t.scheduled_time, t.description, t.priority,
-               c.name as client_name, c.address
+               c.name as client_name, c.address,
+               CONCAT(u.name, ' ', COALESCE(u.last_name, '')) as technician_name
     FROM tickets t
     JOIN clients c ON t.client_id = c.id
-    WHERE t.scheduled_date IS NOT NULL 
-    AND t.scheduled_date BETWEEN ? AND ?
+    LEFT JOIN users u ON t.assigned_to = u.id
+    WHERE t.scheduled_date BETWEEN ? AND ?
     ORDER BY t.scheduled_date, t.scheduled_time
 ", [$startDate, $endDate]);
 
+// Organizar tickets por fecha
 $ticketsByDate = [];
 foreach ($scheduledTickets as $ticket) {
     $date = $ticket['scheduled_date'];
@@ -79,321 +90,264 @@ foreach ($scheduledTickets as $ticket) {
     $ticketsByDate[$date][] = $ticket;
 }
 
-    // Page title para el header
-    $pageTitle = 'Calendario de Citas';
+// Add custom CSS for calendar
+if (!isset($GLOBALS['extra_css'])) {
+    $GLOBALS['extra_css'] = [];
+}
+$GLOBALS['extra_css'][] = '<style>
+.btn-month-nav {
+    background-color: #2D3142;
+    color: white;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    border-radius: 0.375rem;
+    display: inline-flex;
+    align-items: center;
+    border: none;
+}
+.btn-month-nav:hover {
+    background-color: #1a1e2e;
+    color: white;
+    text-decoration: none;
+}
+.appointment {
+    background-color: #5B6386;
+    color: white;
+    margin-bottom: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+}
+.appointment .time {
+    font-weight: bold;
+}
+.appointment .client {
+    font-weight: normal;
+}
+.calendar-table {
+    background-color: #B9C3C6;
+}
+.calendar-table td {
+    vertical-align: top;
+    height: 120px;
+    width: 14.28%;
+    position: relative;
+}
+.calendar-table .day-number {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+.calendar-table .other-month {
+    color: #6c757d;
+    background-color: #f8f9fa;
+}
+.calendar-table .today {
+    background-color: #fff3cd;
+    border: 2px solid #ffc107;
+}
+</style>';
+
+// Include header
+include_once '../templates/header.php';
+?>
+
+<div class="container-fluid py-4">
+    <h1 class="mb-4">Calendario de Citas - <?php echo date('F Y', mktime(0, 0, 0, $month, 1, $year)); ?></h1>
     
-    ?>
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Sistema de Gestión de Tickets para Ascensores</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-        <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
-        <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>assets/img/favicon.png">
-        
-        <style>
-        /* Estilos específicos del calendar */
-        .calendar-table { background-color: #B9C3C6; }
-        .btn-month-nav { 
-            background-color: #2D3142; 
-            color: white; 
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .btn-month-nav:hover { 
-            background-color: #3d4252; 
-            color: white; 
-        }
-        .appointment { 
-            background-color: #5B6386; 
-            color: white; 
-            margin-bottom: 5px; 
-            padding: 5px; 
-            border-radius: 3px; 
-            font-size: 0.85rem;
-        }
-        .appointment .time { font-weight: bold; }
-        </style>
-    </head>
-    <body class="dark-mode has-sidebar">
-        <!-- Top Navbar (mobile) -->
-        <nav class="navbar top-navbar d-flex align-items-center px-3 d-md-none">
-            <div class="d-flex align-items-center gap-2">
-                <button class="btn btn-outline-light d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
-                    <i class="bi bi-list" style="font-size:1.25rem;"></i>
-                </button>
-                <a class="navbar-brand mb-0 h1 d-flex align-items-center" href="<?php echo BASE_URL; ?>dashboard.php">
-                    <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="Logo" style="height:28px;width:auto;"/>
+    <!-- Navigation -->
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+        <div>
+            <?php
+            $prevMonth = $month - 1;
+            $prevYear = $year;
+            if ($prevMonth < 1) {
+                $prevMonth = 12;
+                $prevYear--;
+            }
+            
+            $nextMonth = $month + 1;
+            $nextYear = $year;
+            if ($nextMonth > 12) {
+                $nextMonth = 1;
+                $nextYear++;
+            }
+            ?>
+            <a href="?month=<?php echo $prevMonth; ?>&year=<?php echo $prevYear; ?>" class="btn-month-nav me-2">
+                <i class="bi bi-chevron-left"></i> Anterior
+            </a>
+            <span class="fw-bold fs-5 mx-3"><?php echo date('F Y', mktime(0, 0, 0, $month, 1, $year)); ?></span>
+            <a href="?month=<?php echo $nextMonth; ?>&year=<?php echo $nextYear; ?>" class="btn-month-nav ms-2">
+                Siguiente <i class="bi bi-chevron-right"></i>
             </a>
         </div>
-        </nav>
         
-        <!-- Offcanvas Sidebar for mobile -->
-        <div class="offcanvas offcanvas-start mobile-sidebar" tabindex="-1" id="mobileSidebar">
-            <div class="offcanvas-header border-bottom">
-                <h5 class="offcanvas-title">Menú</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
-    </div>
-            <div class="offcanvas-body p-0">
-                            <div class="sidebar-content">
-                <!-- Mobile sidebar content -->
-                <div class="text-center p-3">
-                    <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="TechonWay" style="height: 40px;">
-                </div>
-                <div class="text-center p-3 border-bottom">
-                    <i class="bi bi-person-circle" style="font-size:2rem;"></i>
-                    <div class="mt-2"><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></div>
-                    <small class="text-light">Administrador</small>
-                </div>
-                    <nav class="nav flex-column">
-                        <a class="nav-link" href="/admin/dashboard.php">
-                            <i class="bi bi-speedometer2 me-2"></i>Dashboard
-                        </a>
-                        <a class="nav-link" href="/admin/clients.php">
-                            <i class="bi bi-building me-2"></i>Clientes
-                        </a>
-                        <a class="nav-link" href="/admin/technicians.php">
-                            <i class="bi bi-person-gear me-2"></i>Técnicos
-                        </a>
-                        <a class="nav-link" href="/admin/admins.php">
-                            <i class="bi bi-shield-lock me-2"></i>Administradores
-                        </a>
-                        <a class="nav-link" href="/admin/tickets.php">
-                            <i class="bi bi-ticket-perforated me-2"></i>Tickets
-                        </a>
-                        <a class="nav-link active" href="/admin/calendar.php">
-                            <i class="bi bi-calendar-event me-2"></i>Calendario
-                        </a>
-                        <a class="nav-link" href="/admin/service_requests.php">
-                            <i class="bi bi-journal-text me-2"></i>Solicitudes
-                        </a>
-                        <a class="nav-link" href="/admin/visits.php">
-                            <i class="bi bi-clipboard-check me-2"></i>Visitas
-                        </a>
-                        <a class="nav-link" href="/admin/import_clients.php">
-                            <i class="bi bi-file-earmark-excel me-2"></i>Importar
-                        </a>
-                        <a class="nav-link" href="/profile.php">
-                            <i class="bi bi-person me-2"></i>Perfil
-                        </a>
-                        <hr>
-                        <a class="nav-link" href="/logout.php">
-                            <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
-                        </a>
-                    </nav>
-                </div>
-            </div>
-        </div>
-
-        <div class="container-fluid">
-            <div class="row">
-                <!-- Sidebar -->
-                                        <div class="col-md-3 col-lg-2 px-0 sidebar d-none d-md-block">
-                <div class="sidebar-brand text-center p-3">
-                    <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="TechonWay" style="height: 50px;">
-                </div>
-                <div class="text-center p-3 border-bottom">
-                    <i class="bi bi-person-circle" style="font-size:2.5rem;"></i>
-                    <div class="mt-2"><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></div>
-                    <small class="text-light">Administrador</small>
-                </div>
-                <nav class="nav flex-column">
-                    <a class="nav-link" href="/admin/dashboard.php">
-                        <i class="bi bi-speedometer2 me-2"></i>Dashboard
-                    </a>
-                    <a class="nav-link" href="/admin/clients.php">
-                        <i class="bi bi-building me-2"></i>Clientes
-                    </a>
-                    <a class="nav-link" href="/admin/technicians.php">
-                        <i class="bi bi-person-gear me-2"></i>Técnicos
-                    </a>
-                    <a class="nav-link" href="/admin/admins.php">
-                        <i class="bi bi-shield-lock me-2"></i>Administradores
-                    </a>
-                    <a class="nav-link" href="/admin/tickets.php">
-                        <i class="bi bi-ticket-perforated me-2"></i>Tickets
-                    </a>
-                    <a class="nav-link active" href="/admin/calendar.php">
-                        <i class="bi bi-calendar-event me-2"></i>Calendario
-                    </a>
-                    <a class="nav-link" href="/admin/service_requests.php">
-                        <i class="bi bi-journal-text me-2"></i>Solicitudes
-                    </a>
-                    <a class="nav-link" href="/admin/visits.php">
-                        <i class="bi bi-clipboard-check me-2"></i>Visitas
-                    </a>
-                    <a class="nav-link" href="/admin/import_clients.php">
-                        <i class="bi bi-file-earmark-excel me-2"></i>Importar
-                    </a>
-                    <a class="nav-link" href="/profile.php">
-                        <i class="bi bi-person me-2"></i>Perfil
-                    </a>
-                    <hr>
-                    <a class="nav-link" href="/logout.php">
-                        <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
-                    </a>
-                </nav>
-            </div>
-                <!-- Main content -->
-                <div class="col-12 col-md-9 col-lg-10 ms-auto main-content">
-                    
-                    <!-- Calendar Content -->
-                    <div class="container-fluid py-4">
-                        <h1 class="mb-4">Calendario de Citas - <?php echo date('F Y', mktime(0, 0, 0, $month, 1, $year)); ?></h1>
-                        
-                        <!-- Navigation -->
-                        <div class="mb-3 d-flex justify-content-between align-items-center">
-                            <div>
-                                <?php
-                                $prevMonth = $month - 1;
-                                $prevYear = $year;
-                                if ($prevMonth < 1) {
-                                    $prevMonth = 12;
-                                    $prevYear--;
-                                }
-                                
-                                $nextMonth = $month + 1;
-                                $nextYear = $year;
-                                if ($nextMonth > 12) {
-                                    $nextMonth = 1;
-                                    $nextYear++;
-                                }
-                                ?>
-                                <a href="?month=<?php echo $prevMonth; ?>&year=<?php echo $prevYear; ?>" class="btn-month-nav me-2">
-                                    <i class="bi bi-chevron-left"></i> Anterior
-                                </a>
-                                <span class="fw-bold fs-5 mx-3"><?php echo date('F Y', mktime(0, 0, 0, $month, 1, $year)); ?></span>
-                                <a href="?month=<?php echo $nextMonth; ?>&year=<?php echo $nextYear; ?>" class="btn-month-nav ms-2">
-                                    Siguiente <i class="bi bi-chevron-right"></i>
-                                </a>
-                            </div>
-                            
-                            <div>
-                                <a href="?month=<?php echo date('m'); ?>&year=<?php echo date('Y'); ?>" class="btn btn-primary">
-                                    <i class="bi bi-house"></i> Mes Actual
-                                </a>
-                                <a href="/admin/tickets.php?action=create" class="btn btn-success">
-                                    <i class="bi bi-plus"></i> Crear Ticket
-                                </a>
+        <div>
+            <a href="?month=<?php echo date('m'); ?>&year=<?php echo date('Y'); ?>" class="btn btn-primary">
+                <i class="bi bi-house"></i> Mes Actual
+            </a>
+            <a href="/admin/tickets.php?action=create" class="btn btn-success">
+                <i class="bi bi-plus"></i> Crear Ticket
+            </a>
         </div>
     </div>
     
-                        <!-- Calendar -->
+    <!-- Calendar -->
+    <div class="table-responsive">
+        <table class="table table-bordered calendar-table">
+            <thead class="table-dark">
+                <tr>
+                    <th>Domingo</th><th>Lunes</th><th>Martes</th><th>Miércoles</th><th>Jueves</th><th>Viernes</th><th>Sábado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                // Calcular el primer día del mes y de qué día de la semana es
+                $firstDay = mktime(0, 0, 0, $month, 1, $year);
+                $firstDayOfWeek = date('w', $firstDay); // 0=domingo, 6=sábado
+                $daysInMonth = date('t', $firstDay);
+                
+                // Calcular días del mes anterior para llenar el calendario
+                $prevMonthDays = date('t', mktime(0, 0, 0, $month - 1, 1, $year));
+                
+                $currentDay = 1;
+                $nextMonthDay = 1;
+                $today = date('Y-m-d');
+                
+                for ($week = 0; $week < 6; $week++) {
+                    echo '<tr>';
+                    
+                    for ($dayOfWeek = 0; $dayOfWeek < 7; $dayOfWeek++) {
+                        $cellDate = '';
+                        $cellClass = '';
+                        $dayNumber = '';
+                        
+                        if ($week == 0 && $dayOfWeek < $firstDayOfWeek) {
+                            // Días del mes anterior
+                            $dayNumber = $prevMonthDays - ($firstDayOfWeek - $dayOfWeek - 1);
+                            $cellClass = 'other-month';
+                        } elseif ($currentDay <= $daysInMonth) {
+                            // Días del mes actual
+                            $dayNumber = $currentDay;
+                            $cellDate = sprintf('%04d-%02d-%02d', $year, $month, $currentDay);
+                            
+                            if ($cellDate === $today) {
+                                $cellClass = 'today';
+                            }
+                            
+                            $currentDay++;
+                        } else {
+                            // Días del mes siguiente
+                            $dayNumber = $nextMonthDay;
+                            $cellClass = 'other-month';
+                            $nextMonthDay++;
+                        }
+                        
+                        echo '<td class="' . $cellClass . '">';
+                        echo '<div class="day-number">' . $dayNumber . '</div>';
+                        
+                        // Mostrar appointments para este día
+                        if (!empty($cellDate) && isset($ticketsByDate[$cellDate])) {
+                            foreach ($ticketsByDate[$cellDate] as $ticket) {
+                                $priorityClass = match($ticket['priority']) {
+                                    'urgent' => 'text-danger',
+                                    'high' => 'text-warning',
+                                    default => ''
+                                };
+                                
+                                echo '<div class="appointment ' . $priorityClass . '">';
+                                echo '<div class="time">' . date('H:i', strtotime($ticket['scheduled_time'])) . '</div>';
+                                echo '<div class="client">' . htmlspecialchars(substr($ticket['client_name'], 0, 15)) . '</div>';
+                                if ($ticket['technician_name']) {
+                                    echo '<div class="technician"><small>' . htmlspecialchars(substr($ticket['technician_name'], 0, 10)) . '</small></div>';
+                                }
+                                echo '</div>';
+                            }
+                        }
+                        
+                        echo '</td>';
+                    }
+                    
+                    echo '</tr>';
+                    
+                    // Si ya mostramos todos los días del mes, salir del loop
+                    if ($currentDay > $daysInMonth && $nextMonthDay > 7) {
+                        break;
+                    }
+                }
+                ?>
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Resumen de citas del mes -->
+    <?php if (!empty($scheduledTickets)): ?>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Citas Programadas en <?php echo date('F Y', mktime(0, 0, 0, $month, 1, $year)); ?></h5>
+        </div>
+        <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered calendar-table">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th>Domingo</th><th>Lunes</th><th>Martes</th><th>Miércoles</th><th>Jueves</th><th>Viernes</th><th>Sábado</th>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                            <th>Cliente</th>
+                            <th>Técnico</th>
+                            <th>Descripción</th>
+                            <th>Prioridad</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php
-                                    $firstDay = mktime(0, 0, 0, $month, 1, $year);
-                                    $startDay = date('w', $firstDay);
-                                    $daysInMonth = date('t', $firstDay);
-                                    
-                                    $day = 1;
-                                    for ($week = 0; $week < 6; $week++) {
-                                        if ($day > $daysInMonth) break;
-                                        echo '<tr>';
-                                        
-                                        for ($dayOfWeek = 0; $dayOfWeek < 7; $dayOfWeek++) {
-                                            echo '<td style="height: 120px; vertical-align: top; padding: 8px;">';
-                                            
-                                            if (($week == 0 && $dayOfWeek >= $startDay) || ($week > 0 && $day <= $daysInMonth)) {
-                                                echo '<div class="fw-bold mb-1">' . $day . '</div>';
-                                                
-                                                $currentDate = sprintf('%04d-%02d-%02d', $year, $month, $day);
-                                                if (isset($ticketsByDate[$currentDate])) {
-                                                    foreach ($ticketsByDate[$currentDate] as $ticket) {
-                                                        echo '<div class="appointment">';
-                                                        echo '<div class="time">' . date('H:i', strtotime($ticket['scheduled_time'])) . '</div>';
-                                                        echo '<div>' . htmlspecialchars(substr($ticket['client_name'], 0, 18)) . '</div>';
-                                                        echo '</div>';
-                                                    }
-                                                }
-                                                
-                                                $day++;
-                                            }
-                                            
-                                            echo '</td>';
-                                        }
-                                        echo '</tr>';
-                        }
-                        ?>
+                        <?php foreach ($scheduledTickets as $ticket): ?>
+                        <tr>
+                            <td><?php echo date('d/m/Y', strtotime($ticket['scheduled_date'])); ?></td>
+                            <td><?php echo date('H:i', strtotime($ticket['scheduled_time'])); ?></td>
+                            <td><?php echo htmlspecialchars($ticket['client_name']); ?></td>
+                            <td><?php echo htmlspecialchars($ticket['technician_name'] ?: 'Sin asignar'); ?></td>
+                            <td><?php echo htmlspecialchars(substr($ticket['description'], 0, 50)); ?><?php echo strlen($ticket['description']) > 50 ? '...' : ''; ?></td>
+                            <td>
+                                <span class="badge bg-<?php 
+                                    echo match($ticket['priority']) {
+                                        'urgent' => 'danger',
+                                        'high' => 'warning',
+                                        'medium' => 'info',
+                                        'low' => 'secondary',
+                                        default => 'secondary'
+                                    };
+                                ?>">
+                                    <?php echo ucfirst($ticket['priority']); ?>
+                                </span>
+                            </td>
+                            <td>
+                                <a href="/admin/tickets.php?action=edit&id=<?php echo $ticket['id']; ?>" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
-    </div>
-    
-                        <!-- Resumen -->
-    <div class="row mt-4">
-                            <div class="col-md-8">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <h5 class="card-title">📊 Resumen del Mes</h5>
-                                        <p class="card-text">
-                                            <strong>Total de citas:</strong> <?php echo count($scheduledTickets); ?><br>
-                                            <strong>Mes:</strong> <?php echo date('F Y', mktime(0, 0, 0, $month, 1, $year)); ?><br>
-                                            <small class="text-muted">Usuario: <?php echo $_SESSION['user_name'] ?? 'Admin'; ?></small>
-                                        </p>
-                </div>
-            </div>
-        </div>
-                            <div class="col-md-4">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <h5 class="card-title">🔧 Acciones Rápidas</h5>
-                                        <div class="d-grid gap-2">
-                                            <a href="/admin/tickets.php?action=create" class="btn btn-success btn-sm">
-                                                <i class="bi bi-plus"></i> Crear Ticket
-                                            </a>
-                                            <a href="/admin/dashboard.php" class="btn btn-secondary btn-sm">
-                                                <i class="bi bi-arrow-left"></i> Dashboard
-                                            </a>
-                </div>
             </div>
         </div>
     </div>
-</div>
-            </div>
-        </div>
-    </div>
+    <?php endif; ?>
 </div>
 
-        <!-- Bootstrap JS -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    </body>
-    </html>
-    
-    <?php
-    
+<?php
+// Include footer
+include_once '../templates/footer.php';
+
 } catch (Exception $e) {
-    ?>
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Error - TechonWay</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    </head>
-    <body>
-        <div class="container py-5">
-            <div class="alert alert-danger">
-                <h4>❌ Error en Calendar</h4>
-                <strong>Error:</strong> <?php echo $e->getMessage(); ?><br>
-                <strong>Archivo:</strong> <?php echo $e->getFile(); ?><br>
-                <strong>Línea:</strong> <?php echo $e->getLine(); ?><br>
-                                </div>
-            <a href="/admin/dashboard.php" class="btn btn-secondary">← Volver al Dashboard</a>
-            <a href="/admin/force_login_and_calendar.php" class="btn btn-primary">🔑 Login y Calendar</a>
-                                </div>
-    </body>
-    </html>
-    <?php
+    echo '<div class="container py-5">';
+    echo '<div class="alert alert-danger">';
+    echo '<h4>❌ Error en Calendar</h4>';
+    echo '<strong>Error:</strong> ' . $e->getMessage() . '<br>';
+    echo '<strong>Archivo:</strong> ' . $e->getFile() . '<br>';
+    echo '<strong>Línea:</strong> ' . $e->getLine() . '<br>';
+    echo '</div>';
+    echo '<a href="/admin/dashboard.php" class="btn btn-secondary">← Volver al Dashboard</a>';
+    echo '</div>';
 }
 ?>

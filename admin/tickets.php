@@ -17,7 +17,6 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
 
 require_once '../includes/Database.php';
 require_once '../includes/Auth.php';
-require_once '../includes/functions.php';
 
 if (!defined('BASE_URL')) {
     define('BASE_URL', '/');
@@ -34,6 +33,32 @@ if (!defined('TEMPLATE_PATH')) {
 // Initialize auth
 $auth = new Auth();
 $pageTitle = 'Gestión de Tickets';
+
+// Funciones básicas necesarias
+if (!function_exists('escape')) {
+    function escape($string) {
+        return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('isActive')) {
+    function isActive($page) {
+        $currentPage = basename($_SERVER['PHP_SELF']);
+        return $currentPage === $page ? 'active' : '';
+    }
+}
+
+if (!function_exists('getFlash')) {
+    function getFlash() {
+        return null; // Simple implementation
+    }
+}
+
+if (!function_exists('__')) {
+    function __($key, $default = '') {
+        return $default ?: $key; // Simple implementation
+    }
+}
 
 // Función simple para generar código de seguridad
 function generateSecurityCode() {
@@ -143,7 +168,6 @@ if (isset($_GET['msg'])) {
     $message = $_GET['msg'];
 }
 
-<?php
 // Add custom CSS for date/time inputs
 if (!isset($GLOBALS['extra_css'])) {
     $GLOBALS['extra_css'] = [];
@@ -172,198 +196,198 @@ include_once '../templates/header.php';
 ?>
 
 <div class="container-fluid py-4">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h1>Gestión de Tickets</h1>
-                <?php if ($action === 'list'): ?>
-                <a href="?action=create" class="btn btn-success">
-                    <i class="bi bi-plus"></i> Crear Ticket
-                </a>
-                    <?php endif; ?>
-                    </div>
-                    
-                    <!-- Mensajes -->
-                    <?php if ($message): ?>
-                        <div class="alert alert-success alert-dismissible fade show">
-                            <?php echo htmlspecialchars($message); ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    <?php endif; ?>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Gestión de Tickets</h1>
+        <?php if ($action === 'list'): ?>
+        <a href="?action=create" class="btn btn-success">
+            <i class="bi bi-plus"></i> Crear Ticket
+        </a>
+        <?php endif; ?>
+    </div>
+    
+    <!-- Mensajes -->
+    <?php if ($message): ?>
+        <div class="alert alert-success alert-dismissible fade show">
+            <?php echo htmlspecialchars($message); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
 
-                    <?php if ($error): ?>
-                        <div class="alert alert-danger alert-dismissible fade show">
-                            <?php echo htmlspecialchars($error); ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    <?php endif; ?>
+    <?php if ($error): ?>
+        <div class="alert alert-danger alert-dismissible fade show">
+            <?php echo htmlspecialchars($error); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
 
-                    <?php if ($action === 'list'): ?>
-                        <!-- Lista de Tickets -->
-                        <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Lista de Tickets</h5>
-                </div>
-                <div class="card-body">
-                    <?php if (!empty($tickets)): ?>
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Cliente</th>
-                                    <th>Descripción</th>
-                                    <th>Técnico</th>
-                                    <th>Estado</th>
-                                    <th>Cita</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($tickets as $t): ?>
-                                <tr>
-                                    <td><?php echo $t['id']; ?></td>
-                                    <td>
-                                        <?php echo htmlspecialchars($t['client_name']); ?>
-                                        <?php if ($t['business_name']): ?>
-                                        <small class="text-muted d-block"><?php echo htmlspecialchars($t['business_name']); ?></small>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td><?php echo htmlspecialchars(substr($t['description'], 0, 50)) . (strlen($t['description']) > 50 ? '...' : ''); ?></td>
-                                    <td><?php echo htmlspecialchars($t['technician_name'] ?: 'Sin asignar'); ?></td>
-                                    <td>
-                                        <span class="badge bg-<?php 
-                                            echo $t['status'] === 'completed' ? 'success' : 
-                                                ($t['status'] === 'in_progress' ? 'warning' : 'secondary'); 
-                                        ?>">
-                                            <?php echo ucfirst($t['status']); ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <?php if ($t['scheduled_date']): ?>
-                                            <small>
-                                                📅 <?php echo date('d/m/Y', strtotime($t['scheduled_date'])); ?><br>
-                                                🕐 <?php echo date('H:i', strtotime($t['scheduled_time'])); ?>
-                                                <?php if ($t['security_code']): ?>
-                                                <br><strong>Código:</strong> <?php echo $t['security_code']; ?>
-                                                <?php endif; ?>
-                                            </small>
-                                        <?php else: ?>
-                                            <span class="text-muted">Sin cita</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="?action=edit&id=<?php echo $t['id']; ?>" class="btn btn-outline-primary">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <button type="button" class="btn btn-outline-danger" onclick="confirmDeleteTicket(<?php echo $t['id']; ?>, '<?php echo htmlspecialchars($t['client_name']); ?>')">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                    <?php else: ?>
-                    <p class="text-muted">No hay tickets registrados.</p>
-                    <?php endif; ?>
-                </div>
-            </div>
-
-            <?php else: ?>
-            <!-- Formulario Crear/Editar -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <?php echo $action === 'edit' ? 'Editar Ticket #' . $ticket['id'] : 'Crear Nuevo Ticket'; ?>
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST">
-                        <?php if ($action === 'edit'): ?>
-                        <input type="hidden" name="ticket_id" value="<?php echo $ticket['id']; ?>">
-                        <?php endif; ?>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Cliente *</label>
-                                    <select name="client_id" class="form-select" required>
-                                        <option value="">Seleccionar cliente...</option>
-                                        <?php foreach ($clients as $client): ?>
-                                        <option value="<?php echo $client['id']; ?>" 
-                                                <?php echo ($ticket && $ticket['client_id'] == $client['id']) ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($client['name']); ?>
-                                            <?php if ($client['business_name']): ?>
-                                            - <?php echo htmlspecialchars($client['business_name']); ?>
+    <?php if ($action === 'list'): ?>
+    <!-- Lista de Tickets -->
+    <div class="card">
+        <div class="card-body">
+            <?php if (!empty($tickets)): ?>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Descripción</th>
+                                <th>Técnico</th>
+                                <th>Estado</th>
+                                <th>Cita</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($tickets as $t): ?>
+                            <tr>
+                                <td><?php echo $t['id']; ?></td>
+                                <td>
+                                    <?php echo htmlspecialchars($t['client_name']); ?>
+                                    <?php if ($t['business_name']): ?>
+                                    <small class="text-muted d-block"><?php echo htmlspecialchars($t['business_name']); ?></small>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?php echo htmlspecialchars(substr($t['description'], 0, 50)) . (strlen($t['description']) > 50 ? '...' : ''); ?></td>
+                                <td><?php echo htmlspecialchars($t['technician_name'] ?: 'Sin asignar'); ?></td>
+                                <td>
+                                    <span class="badge bg-<?php 
+                                        echo $t['status'] === 'completed' ? 'success' : 
+                                            ($t['status'] === 'in_progress' ? 'warning' : 'secondary'); 
+                                    ?>">
+                                        <?php echo ucfirst($t['status']); ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <?php if ($t['scheduled_date']): ?>
+                                        <small>
+                                            📅 <?php echo date('d/m/Y', strtotime($t['scheduled_date'])); ?><br>
+                                            🕐 <?php echo date('H:i', strtotime($t['scheduled_time'])); ?>
+                                            <?php if ($t['security_code']): ?>
+                                            <br><strong>Código:</strong> <?php echo $t['security_code']; ?>
                                             <?php endif; ?>
-                                        </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Técnico Asignado</label>
-                                    <select name="assigned_to" class="form-select">
-                                        <option value="">Sin asignar</option>
-                                        <?php foreach ($technicians as $tech): ?>
-                                        <option value="<?php echo $tech['id']; ?>"
-                                                <?php echo ($ticket && $ticket['assigned_to'] == $tech['id']) ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($tech['name'] . ' ' . ($tech['last_name'] ?: '')); ?>
-                                        </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Descripción *</label>
-                            <textarea name="description" class="form-control" rows="3" required><?php echo $ticket ? htmlspecialchars($ticket['description']) : ''; ?></textarea>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label">Prioridad</label>
-                                    <select name="priority" class="form-select">
-                                        <option value="low" <?php echo ($ticket && $ticket['priority'] === 'low') ? 'selected' : ''; ?>>Baja</option>
-                                        <option value="medium" <?php echo (!$ticket || $ticket['priority'] === 'medium') ? 'selected' : ''; ?>>Media</option>
-                                        <option value="high" <?php echo ($ticket && $ticket['priority'] === 'high') ? 'selected' : ''; ?>>Alta</option>
-                                        <option value="urgent" <?php echo ($ticket && $ticket['priority'] === 'urgent') ? 'selected' : ''; ?>>Urgente</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label">Fecha de la Cita</label>
-                                    <input type="date" name="scheduled_date" class="form-control" 
-                                           value="<?php echo $ticket ? $ticket['scheduled_date'] : ''; ?>">
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label">Hora de la Cita</label>
-                                    <input type="time" name="scheduled_time" class="form-control" 
-                                           value="<?php echo $ticket ? $ticket['scheduled_time'] : ''; ?>">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex gap-2">
-                            <button type="submit" name="save_ticket" class="btn btn-success">
-                                <i class="bi bi-check"></i> Guardar Ticket
-                            </button>
-                            <a href="?action=list" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Volver
-                            </a>
-                        </div>
-                    </form>
+                                        </small>
+                                    <?php else: ?>
+                                        <span class="text-muted">Sin cita</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="?action=edit&id=<?php echo $t['id']; ?>" class="btn btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-danger" onclick="confirmDeleteTicket(<?php echo $t['id']; ?>, '<?php echo htmlspecialchars($t['client_name']); ?>')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-                    <?php endif; ?>
+                <?php else: ?>
+                <p class="text-muted">No hay tickets registrados.</p>
+                <?php endif; ?>
+        </div>
+    </div>
+
+    <?php else: ?>
+    <!-- Formulario Crear/Editar -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <?php echo $action === 'edit' ? 'Editar Ticket #' . $ticket['id'] : 'Crear Nuevo Ticket'; ?>
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <?php if ($action === 'edit'): ?>
+                <input type="hidden" name="ticket_id" value="<?php echo $ticket['id']; ?>">
+                <?php endif; ?>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="client_id" class="form-label">Cliente *</label>
+                            <select class="form-select" id="client_id" name="client_id" required>
+                                <option value="">Seleccionar cliente...</option>
+                                <?php foreach ($clients as $client): ?>
+                                <option value="<?php echo $client['id']; ?>" 
+                                        <?php echo ($action === 'edit' && $ticket['client_id'] == $client['id']) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($client['name']); ?>
+                                    <?php if ($client['business_name']): ?>
+                                        - <?php echo htmlspecialchars($client['business_name']); ?>
+                                    <?php endif; ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="assigned_to" class="form-label">Asignar a Técnico</label>
+                            <select class="form-select" id="assigned_to" name="assigned_to">
+                                <option value="">Sin asignar</option>
+                                <?php foreach ($technicians as $technician): ?>
+                                <option value="<?php echo $technician['id']; ?>"
+                                        <?php echo ($action === 'edit' && $ticket['assigned_to'] == $technician['id']) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($technician['name'] . ' ' . $technician['last_name']); ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="priority" class="form-label">Prioridad</label>
+                            <select class="form-select" id="priority" name="priority">
+                                <option value="low" <?php echo ($action === 'edit' && $ticket['priority'] === 'low') ? 'selected' : ''; ?>>Baja</option>
+                                <option value="medium" <?php echo ($action === 'edit' && $ticket['priority'] === 'medium') ? 'selected' : 'selected'; ?>>Media</option>
+                                <option value="high" <?php echo ($action === 'edit' && $ticket['priority'] === 'high') ? 'selected' : ''; ?>>Alta</option>
+                                <option value="urgent" <?php echo ($action === 'edit' && $ticket['priority'] === 'urgent') ? 'selected' : ''; ?>>Urgente</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Descripción del Problema *</label>
+                    <textarea class="form-control" id="description" name="description" rows="4" required><?php echo $action === 'edit' ? htmlspecialchars($ticket['description']) : ''; ?></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="scheduled_date" class="form-label">Fecha de la Cita</label>
+                            <input type="date" class="form-control" id="scheduled_date" name="scheduled_date" 
+                                   value="<?php echo $ticket ? $ticket['scheduled_date'] : ''; ?>">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="scheduled_time" class="form-label">Hora de la Cita</label>
+                            <input type="time" class="form-control" id="scheduled_time" name="scheduled_time" 
+                                   value="<?php echo $ticket ? $ticket['scheduled_time'] : ''; ?>">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" name="save_ticket" class="btn btn-success">
+                        <i class="bi bi-check"></i> Guardar Ticket
+                    </button>
+                    <a href="?action=list" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <?php endif; ?>
 </div>
 
 <!-- Modal de confirmación para eliminar ticket -->
