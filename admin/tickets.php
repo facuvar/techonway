@@ -5,6 +5,7 @@
 require_once '../includes/init.php';
 require_once '../includes/WhatsAppNotifier.php';
 require_once '../includes/SmsNotifier.php';
+require_once '../includes/Mailer.php';
 
 // Require admin authentication
 $auth->requireAdmin();
@@ -22,11 +23,29 @@ $technicianId = $_GET['technician_id'] ?? null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Create or update ticket
     if (isset($_POST['save_ticket'])) {
+        // Procesar datos de programación
+        $scheduledDate = !empty($_POST['scheduled_date']) ? $_POST['scheduled_date'] : null;
+        $scheduledTime = !empty($_POST['scheduled_time']) ? $_POST['scheduled_time'] : null;
+        $securityCode = !empty($_POST['security_code']) ? $_POST['security_code'] : null;
+        
+        // Si se especifica fecha/hora pero no hay código, generar uno
+        if (($scheduledDate || $scheduledTime) && empty($securityCode)) {
+            $securityCode = SecurityCodeGenerator::generateUnique($db);
+        }
+        
+        // Si hay código pero no es válido, generar uno nuevo
+        if (!empty($securityCode) && !SecurityCodeGenerator::isValid($securityCode)) {
+            $securityCode = SecurityCodeGenerator::generateUnique($db);
+        }
+        
         $ticketData = [
             'client_id' => $_POST['client_id'] ?? null,
             'technician_id' => $_POST['technician_id'] ?? null,
             'description' => $_POST['description'] ?? '',
-            'status' => $_POST['status'] ?? 'pending'
+            'status' => $_POST['status'] ?? 'pending',
+            'scheduled_date' => $scheduledDate,
+            'scheduled_time' => $scheduledTime,
+            'security_code' => $securityCode
         ];
         
         // Validate required fields
@@ -71,6 +90,89 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                     }
                 }
+                
+                // Verificar si se programó o cambió la cita y enviar email al cliente
+                $schedulingChanged = ($oldTicket['scheduled_date'] != $ticketData['scheduled_date'] || 
+                                    $oldTicket['scheduled_time'] != $ticketData['scheduled_time'] ||
+                                    $oldTicket['security_code'] != $ticketData['security_code']);
+                
+                if (!empty($ticketData['scheduled_date']) && !empty($ticketData['scheduled_time']) && $schedulingChanged) {
+                    $technician = $db->selectOne("SELECT * FROM users WHERE id = ?", [$ticketData['technician_id']]);
+                    $client = $db->selectOne("SELECT * FROM clients WHERE id = ?", [$ticketData['client_id']]);
+                    $ticket = $db->selectOne("SELECT * FROM tickets WHERE id = ?", [$_POST['ticket_id']]);
+                    
+                    // Determinar si es primera programación o reprogramación
+                    $wasScheduled = !empty($oldTicket['scheduled_date']) && !empty($oldTicket['scheduled_time']);
+                    $isRescheduling = $wasScheduled && ($oldTicket['scheduled_date'] != $ticketData['scheduled_date'] || 
+                                                       $oldTicket['scheduled_time'] != $ticketData['scheduled_time']);
+                    
+                    try {
+                        $mailer = new Mailer();
+                        
+                        if ($isRescheduling) {
+                            // Email de reprogramación
+                            $subject = 'Cita Técnica Reprogramada - TechonWay';
+                            $html = '<h3 style="color: #f39c12;">🔄 Cita Técnica Reprogramada</h3>' .
+                                    '<p>Estimado/a <strong>' . htmlspecialchars($client['name']) . '</strong>,</p>' .
+                                    '<p><strong>Su cita técnica ha sido reprogramada.</strong></p>' .
+                                    
+                                    '<div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 15px 0;">' .
+                                    '<h4 style="color: #856404; margin-top: 0;">📅 Datos Anteriores:</h4>' .
+                                    '<ul style="color: #856404;">' .
+                                    '<li><strong>Fecha:</strong> ' . date('d/m/Y', strtotime($oldTicket['scheduled_date'])) . '</li>' .
+                                    '<li><strong>Hora:</strong> ' . date('H:i', strtotime($oldTicket['scheduled_time'])) . '</li>' .
+                                    '</ul>' .
+                                    '</div>' .
+                                    
+                                    '<div style="background-color: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 5px; margin: 15px 0;">' .
+                                    '<h4 style="color: #155724; margin-top: 0;">✅ Nuevos Datos de la Cita:</h4>' .
+                                    '<ul style="color: #155724;">' .
+                                    '<li><strong>Nueva Fecha:</strong> ' . date('d/m/Y', strtotime($ticket['scheduled_date'])) . '</li>' .
+                                    '<li><strong>Nueva Hora:</strong> ' . date('H:i', strtotime($ticket['scheduled_time'])) . '</li>' .
+                                    '<li><strong>Técnico:</strong> ' . htmlspecialchars($technician['name']) . '</li>' .
+                                    '<li><strong>Nuevo Código de Seguridad:</strong> ' . htmlspecialchars($ticket['security_code']) . '</li>' .
+                                    '</ul>' .
+                                    '</div>' .
+                                    
+                                    '<p><strong>Descripción del trabajo:</strong><br>' . nl2br(htmlspecialchars($ticket['description'])) . '</p>' .
+                                    '<p><strong>⚠️ Importante:</strong> Por favor, esté disponible en la dirección indicada en el <strong>nuevo horario programado</strong>.</p>' .
+                                    '<p>Disculpe las molestias ocasionadas por el cambio de horario.</p>' .
+                                    '<p>Saludos cordiales,<br><strong>Equipo TechonWay</strong></p>';
+                            $logMessage = "Email reprogramación";
+                            $flashMessage = 'Ticket actualizado y email de reprogramación enviado al cliente.';
+                        } else {
+                            // Email de primera programación
+                            $subject = 'Cita Técnica Programada - TechonWay';
+                            $html = '<h3>Cita Técnica Programada</h3>' .
+                                    '<p>Estimado/a <strong>' . htmlspecialchars($client['name']) . '</strong>,</p>' .
+                                    '<p>Su cita técnica ha sido programada con los siguientes detalles:</p>' .
+                                    '<ul>' .
+                                    '<li><strong>Fecha:</strong> ' . date('d/m/Y', strtotime($ticket['scheduled_date'])) . '</li>' .
+                                    '<li><strong>Hora:</strong> ' . date('H:i', strtotime($ticket['scheduled_time'])) . '</li>' .
+                                    '<li><strong>Técnico:</strong> ' . htmlspecialchars($technician['name']) . '</li>' .
+                                    '<li><strong>Código de Seguridad:</strong> ' . htmlspecialchars($ticket['security_code']) . '</li>' .
+                                    '</ul>' .
+                                    '<p><strong>Descripción:</strong><br>' . nl2br(htmlspecialchars($ticket['description'])) . '</p>' .
+                                    '<p>Por favor, esté disponible en la dirección indicada en el horario programado.</p>' .
+                                    '<p>Saludos cordiales,<br><strong>Equipo TechonWay</strong></p>';
+                            $logMessage = "Email cita programada";
+                            $flashMessage = 'Ticket actualizado y email de cita enviado al cliente.';
+                        }
+                        
+                        $emailOk = $mailer->send($client['email'], $client['name'], $subject, $html);
+                        $logFile = __DIR__ . '/../ticket_notification_' . date('Y-m-d_H-i-s') . '.log';
+                        file_put_contents($logFile, "$logMessage: " . ($emailOk ? "ÉXITO" : "ERROR") . "\n", FILE_APPEND);
+                        
+                        if ($emailOk) {
+                            flash($flashMessage, 'success');
+                        } else {
+                            flash('Ticket actualizado. Email no pudo ser enviado (verifique la configuración).', 'warning');
+                        }
+                    } catch (Exception $e) {
+                        error_log('Error enviando email: ' . $e->getMessage());
+                        flash('Ticket actualizado. Error enviando email al cliente.', 'warning');
+                    }
+                }
             } else {
                 // Create new ticket
                 $ticketId = $db->insert('tickets', $ticketData);
@@ -101,6 +203,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     } catch (Exception $ex) {
                         error_log('Error SMS: ' . $ex->getMessage());
                         file_put_contents($logFile, "Fallback SMS: EXCEPCION - " . $ex->getMessage() . "\n", FILE_APPEND);
+                    }
+                }
+                
+                // Enviar email al cliente si se programó una cita
+                if (!empty($ticketData['scheduled_date']) && !empty($ticketData['scheduled_time'])) {
+                    try {
+                        $mailer = new Mailer();
+                        $subject = 'Cita Técnica Programada - TechonWay';
+                        $html = '<h3>Cita Técnica Programada</h3>' .
+                                '<p>Estimado/a <strong>' . htmlspecialchars($client['name']) . '</strong>,</p>' .
+                                '<p>Su cita técnica ha sido programada con los siguientes detalles:</p>' .
+                                '<ul>' .
+                                '<li><strong>Fecha:</strong> ' . date('d/m/Y', strtotime($ticket['scheduled_date'])) . '</li>' .
+                                '<li><strong>Hora:</strong> ' . date('H:i', strtotime($ticket['scheduled_time'])) . '</li>' .
+                                '<li><strong>Técnico:</strong> ' . htmlspecialchars($technician['name']) . '</li>' .
+                                '<li><strong>Código de Seguridad:</strong> ' . htmlspecialchars($ticket['security_code']) . '</li>' .
+                                '</ul>' .
+                                '<p><strong>Descripción:</strong><br>' . nl2br(htmlspecialchars($ticket['description'])) . '</p>' .
+                                '<p>Por favor, esté disponible en la dirección indicada en el horario programado.</p>' .
+                                '<p>Saludos cordiales,<br><strong>Equipo TechonWay</strong></p>';
+                        
+                        $emailOk = $mailer->send($client['email'], $client['name'], $subject, $html);
+                        file_put_contents($logFile, "Email al cliente: " . ($emailOk ? "ÉXITO" : "ERROR") . "\n", FILE_APPEND);
+                        
+                        if ($emailOk) {
+                            flash('Ticket creado y email de cita enviado al cliente.', 'success');
+                        } else {
+                            flash('Ticket creado. Email no pudo ser enviado (verifique la configuración).', 'warning');
+                        }
+                    } catch (Exception $e) {
+                        error_log('Error enviando email: ' . $e->getMessage());
+                        file_put_contents($logFile, "Email ERROR: " . $e->getMessage() . "\n", FILE_APPEND);
+                        flash('Ticket creado. Error enviando email al cliente.', 'warning');
                     }
                 }
             }
@@ -349,6 +484,52 @@ include_once '../templates/header.php';
                     <div class="mb-3">
                         <label for="description" class="form-label"><?php echo __('tickets.form.description', 'Descripción del Problema'); ?> *</label>
                         <textarea class="form-control" id="description" name="description" rows="4" required><?php echo $action === 'edit' ? escape($ticket['description']) : ''; ?></textarea>
+                    </div>
+                    
+                    <!-- Sección de programación de cita -->
+                    <div class="card bg-light mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="bi bi-calendar-event"></i> Programación de Cita
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label for="scheduled_date" class="form-label">Fecha de la cita</label>
+                                    <input type="date" class="form-control" id="scheduled_date" name="scheduled_date" 
+                                           value="<?php echo $action === 'edit' ? escape($ticket['scheduled_date']) : ''; ?>"
+                                           min="<?php echo date('Y-m-d'); ?>">
+                                    <small class="form-text text-muted">Opcional: Deja vacío para programar después</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="scheduled_time" class="form-label">Hora de la cita</label>
+                                    <input type="time" class="form-control" id="scheduled_time" name="scheduled_time" 
+                                           value="<?php echo $action === 'edit' ? escape($ticket['scheduled_time']) : ''; ?>">
+                                    <small class="form-text text-muted">Formato 24 horas (ej: 14:30)</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="security_code" class="form-label">Código de seguridad</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="security_code" name="security_code" 
+                                               value="<?php echo $action === 'edit' ? escape($ticket['security_code']) : ''; ?>"
+                                               pattern="[0-9]{4}" maxlength="4" placeholder="0000">
+                                        <button type="button" class="btn btn-outline-secondary" id="generate_code">
+                                            <i class="bi bi-arrow-clockwise"></i> Generar
+                                        </button>
+                                    </div>
+                                    <small class="form-text text-muted">Se genera automáticamente si se deja vacío</small>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i>
+                                    <strong>Información:</strong> Si programas fecha y hora, se enviará automáticamente un email al cliente 
+                                    con los detalles de la cita y el código de seguridad.
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <?php if ($action === 'edit'): ?>
@@ -678,3 +859,182 @@ include_once '../templates/header.php';
     });
 </script>
 <?php endif; ?>
+
+<script>
+// JavaScript para el formulario de tickets con programación de citas
+document.addEventListener('DOMContentLoaded', function() {
+    // Botón para generar código de seguridad
+    const generateCodeBtn = document.getElementById('generate_code');
+    const securityCodeInput = document.getElementById('security_code');
+    
+    if (generateCodeBtn && securityCodeInput) {
+        generateCodeBtn.addEventListener('click', function() {
+            // Generar código aleatorio de 4 dígitos
+            const code = Math.floor(1000 + Math.random() * 9000).toString();
+            securityCodeInput.value = code;
+            
+            // Animación visual
+            securityCodeInput.style.backgroundColor = '#d4edda';
+            setTimeout(() => {
+                securityCodeInput.style.backgroundColor = '';
+            }, 1000);
+        });
+    }
+    
+    // Validaciones del formulario
+    const scheduledDate = document.getElementById('scheduled_date');
+    const scheduledTime = document.getElementById('scheduled_time');
+    
+    if (scheduledDate && scheduledTime) {
+        // Si se selecciona fecha, hacer hora obligatoria
+        scheduledDate.addEventListener('change', function() {
+            if (this.value) {
+                scheduledTime.setAttribute('required', 'required');
+                scheduledTime.parentElement.querySelector('label').innerHTML = 
+                    'Hora de la cita <span style="color: red;">*</span>';
+            } else {
+                scheduledTime.removeAttribute('required');
+                scheduledTime.parentElement.querySelector('label').innerHTML = 'Hora de la cita';
+            }
+        });
+        
+        // Si se selecciona hora, hacer fecha obligatoria
+        scheduledTime.addEventListener('change', function() {
+            if (this.value) {
+                scheduledDate.setAttribute('required', 'required');
+                scheduledDate.parentElement.querySelector('label').innerHTML = 
+                    'Fecha de la cita <span style="color: red;">*</span>';
+            } else {
+                scheduledDate.removeAttribute('required');
+                scheduledDate.parentElement.querySelector('label').innerHTML = 'Fecha de la cita';
+            }
+        });
+    }
+    
+    // Generar código automáticamente si no se especifica
+    const form = document.querySelector('form');
+    if (form && securityCodeInput) {
+        form.addEventListener('submit', function() {
+            if (!securityCodeInput.value || securityCodeInput.value.length !== 4) {
+                const code = Math.floor(1000 + Math.random() * 9000).toString();
+                securityCodeInput.value = code;
+            }
+        });
+    }
+});
+</script>
+
+<style>
+/* Mejorar visibilidad de iconos de fecha y hora en modo oscuro */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(1.2);
+    opacity: 1;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+/* Para navegadores Firefox */
+input[type="date"],
+input[type="time"] {
+    color-scheme: light;
+}
+
+/* Estilos específicos para los campos de fecha y hora */
+#scheduled_date,
+#scheduled_time {
+    position: relative;
+}
+
+#scheduled_date::after,
+#scheduled_time::after {
+    content: '';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0px;
+    height: 20px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    pointer-events: none;
+}
+
+/* Icono de calendario para el campo de fecha */
+#scheduled_date::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1v1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z'/%3E%3C/svg%3E") !important;
+    z-index: 10;
+}
+
+/* Icono de reloj para el campo de hora */
+#scheduled_time::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z'/%3E%3Cpath d='M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 7 7z'/%3E%3C/svg%3E") !important;
+    z-index: 10;
+}
+
+/* Mejorar visibilidad de campos de programación */
+.card.bg-light {
+    background-color: rgba(248, 249, 250, 0.1) !important;
+}
+
+.card.bg-light .card-header {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card.bg-light .alert-info {
+    background-color: rgba(13, 110, 253, 0.1) !important;
+    border-color: rgba(13, 110, 253, 0.3) !important;
+    color: #b6d7ff !important;
+}
+
+/* Estilos específicos para los campos de fecha y hora */
+.form-control[type="date"],
+.form-control[type="time"] {
+    background-color: #2D2D2D;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    padding: 10px 15px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.form-control[type="date"]:focus,
+.form-control[type="time"]:focus {
+    background-color: #2D2D2D;
+    color: #fff;
+    border-color: #2D3142;
+    box-shadow: 0 0 0 0.2rem rgba(45, 49, 66, 0.25);
+    outline: none;
+}
+
+.form-control[type="date"]:hover,
+.form-control[type="time"]:hover {
+    background-color: #2D2D2D;
+    border-color: rgba(45, 49, 66, 0.5);
+}
+
+/* Mejorar visibilidad de las etiquetas */
+.form-label {
+    color: #fff;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+/* Mejorar visibilidad del texto de ayuda */
+.form-text {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
+    margin-top: 5px;
+}
+</style>

@@ -77,7 +77,26 @@ class WhatsAppNotifier {
         $message .= "👤 *Cliente:* {$clientName}\n";
         $message .= "📍 *Dirección:* {$clientAddress}\n";
         $message .= "📝 *Descripción:* {$ticketDescription}\n\n";
-        $message .= "⏰ *Fecha:* " . date('d/m/Y H:i') . "\n\n";
+        
+        // Agregar información de cita programada si existe
+        if (!empty($ticket['scheduled_date']) && !empty($ticket['scheduled_time'])) {
+            $appointmentDate = $this->formatDateForMessage($ticket['scheduled_date']);
+            $appointmentTime = date('H:i', strtotime($ticket['scheduled_time']));
+            
+            $message .= "📅 *CITA PROGRAMADA:*\n";
+            $message .= "🗓️ *Fecha:* {$appointmentDate}\n";
+            $message .= "🕒 *Hora:* {$appointmentTime} hs\n";
+            
+            if (!empty($ticket['security_code'])) {
+                $message .= "🔒 *Código de Seguridad:* {$ticket['security_code']}\n";
+                $message .= "📋 *Importante:* Proporciona este código al cliente para verificar tu identidad.\n\n";
+            } else {
+                $message .= "\n";
+            }
+        } else {
+            $message .= "⏰ *Creado:* " . date('d/m/Y H:i') . "\n\n";
+        }
+        
         $message .= "Accede al sistema para más detalles y gestionar la visita.";
         
         return $this->sendTextMessage($phone, $message);
@@ -441,6 +460,33 @@ class WhatsAppNotifier {
         
         // Escribir en el archivo
         file_put_contents($logFile, $message, FILE_APPEND);
+    }
+    
+    /**
+     * Formatea una fecha para mostrar en mensajes
+     * 
+     * @param string $date Fecha en formato Y-m-d
+     * @return string Fecha formateada
+     */
+    private function formatDateForMessage($date) {
+        if (empty($date)) return 'No programada';
+        
+        $dateObj = new DateTime($date);
+        $today = new DateTime();
+        $tomorrow = new DateTime('+1 day');
+        $dayAfterTomorrow = new DateTime('+2 days');
+        
+        if ($dateObj->format('Y-m-d') === $today->format('Y-m-d')) {
+            return "HOY (" . $dateObj->format('d/m/Y') . ")";
+        } elseif ($dateObj->format('Y-m-d') === $tomorrow->format('Y-m-d')) {
+            return "MAÑANA (" . $dateObj->format('d/m/Y') . ")";
+        } elseif ($dateObj->format('Y-m-d') === $dayAfterTomorrow->format('Y-m-d')) {
+            return "PASADO MAÑANA (" . $dateObj->format('d/m/Y') . ")";
+        } else {
+            $days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+            $dayName = $days[$dateObj->format('w')];
+            return $dayName . " " . $dateObj->format('d/m/Y');
+        }
     }
     
     /**

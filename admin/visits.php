@@ -16,6 +16,7 @@ $visitId = $_GET['id'] ?? null;
 
 // Get all visits for list view
 $visits = [];
+$activeVisits = [];
 if ($action === 'list') {
     $visits = $db->select("
         SELECT v.*, t.id as ticket_id, t.description, t.status as ticket_status,
@@ -24,6 +25,22 @@ if ($action === 'list') {
         JOIN tickets t ON v.ticket_id = t.id
         JOIN clients c ON t.client_id = c.id
         JOIN users u ON t.technician_id = u.id
+        ORDER BY v.start_time DESC
+    ");
+    
+    // Get active visits (started but not finished) with coordinates for map
+    $activeVisits = $db->select("
+        SELECT v.*, t.id as ticket_id, t.description, t.status as ticket_status,
+               c.name as client_name, c.business_name, c.address, c.latitude, c.longitude,
+               u.name as technician_name
+        FROM visits v
+        JOIN tickets t ON v.ticket_id = t.id
+        JOIN clients c ON t.client_id = c.id
+        JOIN users u ON t.technician_id = u.id
+        WHERE v.start_time IS NOT NULL 
+        AND v.end_time IS NULL
+        AND c.latitude IS NOT NULL 
+        AND c.longitude IS NOT NULL
         ORDER BY v.start_time DESC
     ");
 }
@@ -122,6 +139,34 @@ include_once '../templates/header.php';
                 <?php endif; ?>
             </div>
         </div>
+        
+        <!-- Mapa de Visitas Activas -->
+        <?php if (count($activeVisits) > 0): ?>
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-geo-alt"></i> Mapa de Visitas Activas 
+                        <span class="badge bg-info ms-2"><?php echo count($activeVisits); ?></span>
+                    </h5>
+                    <small class="text-muted">Visitas iniciadas que aún no han finalizado</small>
+                </div>
+                <div class="card-body">
+                    <div id="activeVisitsMap" style="height: 500px; border-radius: 8px;"></div>
+                </div>
+            </div>
+        <?php else: ?>
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-geo-alt"></i> Mapa de Visitas Activas
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <i class="bi bi-geo-alt-fill" style="font-size: 3rem; color: #6c757d;"></i>
+                    <p class="mt-3 text-muted">No hay visitas activas en este momento</p>
+                </div>
+            </div>
+        <?php endif; ?>
         
     <?php elseif ($action === 'view' && $visit): ?>
         <!-- View Visit Details -->
@@ -365,5 +410,159 @@ include_once '../templates/header.php';
         </script>
     <?php endif; ?>
 </div>
+
+<!-- JavaScript para el mapa de visitas activas -->
+<?php if ($action === 'list' && count($activeVisits) > 0): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Datos de visitas activas
+    const activeVisits = <?php echo json_encode($activeVisits); ?>;
+    
+    // Verificar que hay visitas con coordenadas válidas
+    const validVisits = activeVisits.filter(visit => 
+        visit.latitude && visit.longitude && 
+        !isNaN(parseFloat(visit.latitude)) && !isNaN(parseFloat(visit.longitude))
+    );
+    
+    if (validVisits.length === 0) {
+        console.log('No hay visitas con coordenadas válidas');
+        return;
+    }
+    
+    // Calcular centro del mapa basado en las visitas
+    let centerLat = 0, centerLng = 0;
+    validVisits.forEach(visit => {
+        centerLat += parseFloat(visit.latitude);
+        centerLng += parseFloat(visit.longitude);
+    });
+    centerLat /= validVisits.length;
+    centerLng /= validVisits.length;
+    
+    // Inicializar mapa
+    const map = L.map('activeVisitsMap').setView([centerLat, centerLng], 12);
+    
+    // Agregar capa de tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    
+    // Crear iconos personalizados para visitas activas
+    const activeIcon = L.divIcon({
+        className: 'custom-div-icon',
+        html: '<div style="background-color: #17a2b8; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); font-weight: bold; font-size: 12px;">🔧</div>',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+    });
+    
+    // Agregar marcadores para cada visita activa
+    validVisits.forEach(visit => {
+        const lat = parseFloat(visit.latitude);
+        const lng = parseFloat(visit.longitude);
+        
+        // Formatear hora de inicio
+        const startTime = new Date(visit.start_time);
+        const startTimeFormatted = startTime.toLocaleString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        // Calcular duración actual
+        const now = new Date();
+        const duration = Math.floor((now - startTime) / 1000 / 60); // minutos
+        const hours = Math.floor(duration / 60);
+        const minutes = duration % 60;
+        const durationText = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+        
+        // Crear popup con información
+        const popupContent = `
+            <div style="min-width: 250px;">
+                <h6 style="margin-bottom: 10px; color: #17a2b8;">
+                    <i class="bi bi-tools"></i> Visita en Progreso
+                </h6>
+                <p style="margin: 5px 0;"><strong>Técnico:</strong> ${visit.technician_name}</p>
+                <p style="margin: 5px 0;"><strong>Cliente:</strong> ${visit.client_name}</p>
+                <p style="margin: 5px 0;"><strong>Dirección:</strong> ${visit.address}</p>
+                <p style="margin: 5px 0;"><strong>Inicio:</strong> ${startTimeFormatted}</p>
+                <p style="margin: 5px 0;"><strong>Duración:</strong> <span style="color: #17a2b8; font-weight: bold;">${durationText}</span></p>
+                <hr style="margin: 10px 0;">
+                <p style="margin: 5px 0; font-size: 12px; color: #666;">
+                    <strong>Ticket #${visit.ticket_id}:</strong><br>
+                    ${visit.description.substring(0, 80)}${visit.description.length > 80 ? '...' : ''}
+                </p>
+                <div style="text-align: center; margin-top: 10px;">
+                    <a href="?action=view&id=${visit.id}" class="btn btn-sm btn-info">
+                        <i class="bi bi-eye"></i> Ver Detalles
+                    </a>
+                </div>
+            </div>
+        `;
+        
+        // Agregar marcador con popup
+        const marker = L.marker([lat, lng], { icon: activeIcon })
+            .addTo(map)
+            .bindPopup(popupContent);
+        
+        // Agregar tooltip que se muestra al hacer hover
+        const tooltipContent = `
+            <strong>${visit.technician_name}</strong><br>
+            Inicio: ${startTimeFormatted}<br>
+            Duración: ${durationText}
+        `;
+        marker.bindTooltip(tooltipContent, {
+            permanent: false,
+            direction: 'top',
+            offset: [0, -20]
+        });
+    });
+    
+    // Ajustar el zoom para que se vean todos los marcadores
+    if (validVisits.length > 1) {
+        const group = new L.featureGroup(map._layers);
+        map.fitBounds(group.getBounds().pad(0.1));
+    }
+    
+    // Actualizar duraciones cada minuto
+    setInterval(() => {
+        // Recalcular y actualizar tooltips y popups
+        map.eachLayer(layer => {
+            if (layer instanceof L.Marker && layer.getTooltip()) {
+                // Actualizar tooltip y popup con nueva duración
+                const visit = validVisits.find(v => 
+                    Math.abs(parseFloat(v.latitude) - layer.getLatLng().lat) < 0.0001 &&
+                    Math.abs(parseFloat(v.longitude) - layer.getLatLng().lng) < 0.0001
+                );
+                
+                if (visit) {
+                    const startTime = new Date(visit.start_time);
+                    const now = new Date();
+                    const duration = Math.floor((now - startTime) / 1000 / 60);
+                    const hours = Math.floor(duration / 60);
+                    const minutes = duration % 60;
+                    const durationText = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+                    
+                    const startTimeFormatted = startTime.toLocaleString('es-ES', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    
+                    const tooltipContent = `
+                        <strong>${visit.technician_name}</strong><br>
+                        Inicio: ${startTimeFormatted}<br>
+                        Duración: ${durationText}
+                    `;
+                    layer.setTooltipContent(tooltipContent);
+                }
+            }
+        });
+    }, 60000); // Actualizar cada minuto
+});
+</script>
+<?php endif; ?>
 
 <?php include_once '../templates/footer.php'; ?>

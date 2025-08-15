@@ -83,7 +83,7 @@ include_once '../templates/header.php';
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1><?php echo $pageTitle; ?></h1>
-        <a href="dashboard.php" class="btn btn-outline-secondary">
+        <a href="dashboard.php" class="btn" style="background-color: #2D3142; border-color: #2D3142; color: white;">
             <i class="bi bi-arrow-left"></i> <?php echo __('common.back_to_dashboard', 'Volver al Dashboard'); ?>
         </a>
     </div>
@@ -199,12 +199,12 @@ include_once '../templates/header.php';
                                     <td><?php echo date('d/m/Y', strtotime($ticket['created_at'])); ?></td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <a href="ticket-detail.php?id=<?php echo $ticket['id']; ?>" class="btn btn-sm btn-outline-primary">
+                                            <a href="ticket-detail.php?id=<?php echo $ticket['id']; ?>" class="btn btn-sm" style="background-color: #2D3142; border-color: #2D3142; color: white;">
                                                 <i class="bi bi-eye"></i> <?php echo __('common.view', 'Ver'); ?>
                                             </a>
                                             
                                             <?php if ($ticket['status'] === 'pending'): ?>
-                                                    <a href="scan_qr.php?action=start&ticket_id=<?php echo $ticket['id']; ?>" class="btn btn-sm btn-outline-success">
+                                                    <a href="scan_qr.php?action=start&ticket_id=<?php echo $ticket['id']; ?>" class="btn btn-sm btn-success">
                                                         <i class="bi bi-qr-code-scan"></i> <?php echo __('tickets.actions.start', 'Iniciar'); ?>
                                                 </a>
                                             <?php elseif ($ticket['status'] === 'in_progress'): ?>
@@ -218,18 +218,18 @@ include_once '../templates/header.php';
                                                 ?>
                                                 
                                                 <?php if ($activeVisit): ?>
-                                                    <a href="active_visit.php?id=<?php echo $activeVisit['id']; ?>" class="btn btn-sm btn-outline-info">
+                                                    <a href="active_visit.php?id=<?php echo $activeVisit['id']; ?>" class="btn btn-sm btn-info">
                                                         <i class="bi bi-eye"></i> <?php echo __('tickets.actions.visit', 'Visita'); ?>
                                                     </a>
                                                 <?php else: ?>
-                                                    <a href="scan_qr.php?action=start&ticket_id=<?php echo $ticket['id']; ?>" class="btn btn-sm btn-outline-success">
+                                                    <a href="scan_qr.php?action=start&ticket_id=<?php echo $ticket['id']; ?>" class="btn btn-sm btn-success">
                                                         <i class="bi bi-qr-code-scan"></i> <?php echo __('tickets.actions.continue', 'Continuar'); ?>
                                                     </a>
                                                 <?php endif; ?>
                                             <?php endif; ?>
                                             
                                             <a href="https://www.google.com/maps/dir/?api=1&destination=<?php echo $ticket['latitude']; ?>,<?php echo $ticket['longitude']; ?>" 
-                                                class="btn btn-sm btn-outline-secondary" target="_blank">
+                                                class="btn btn-sm" style="background-color: #5B6386; border-color: #5B6386; color: white;" target="_blank">
                                                 <i class="bi bi-map"></i> <?php echo __('common.map', 'Mapa'); ?>
                                             </a>
                                         </div>

@@ -49,13 +49,26 @@ class SmsNotifier {
         $this->logInfo("Enviando SMS a técnico: {$technician['name']} (ID: {$technician['id']}) - {$to}");
 
         $desc = isset($ticket['description']) ? trim($ticket['description']) : '';
-        if (strlen($desc) > 120) {
-            $desc = substr($desc, 0, 117) . '...';
+        if (strlen($desc) > 80) {
+            $desc = substr($desc, 0, 77) . '...';
         }
         $clientName = $client['name'] ?? 'Cliente';
         $ticketId = $ticket['id'] ?? '';
-        $url = $this->baseUrl ? rtrim($this->baseUrl, '/') . '/admin/tickets.php?action=view&id=' . $ticketId : '';
+        
         $body = "Nuevo ticket #{$ticketId} asignado. Cliente: {$clientName}. {$desc}";
+        
+        // Agregar información de cita programada si existe
+        if (!empty($ticket['scheduled_date']) && !empty($ticket['scheduled_time'])) {
+            $appointmentDate = date('d/m/Y', strtotime($ticket['scheduled_date']));
+            $appointmentTime = date('H:i', strtotime($ticket['scheduled_time']));
+            $body .= " CITA: {$appointmentDate} {$appointmentTime}";
+            
+            if (!empty($ticket['security_code'])) {
+                $body .= " Codigo: {$ticket['security_code']}";
+            }
+        }
+        
+        $url = $this->baseUrl ? rtrim($this->baseUrl, '/') . '/admin/tickets.php?action=view&id=' . $ticketId : '';
         if ($url) {
             $body .= " Ver: {$url}";
         }

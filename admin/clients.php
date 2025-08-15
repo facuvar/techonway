@@ -39,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'latitude' => $_POST['latitude'] ?? 0,
             'longitude' => $_POST['longitude'] ?? 0,
             'address' => $address,
+            'email' => $_POST['email'] ?? '',
             'phone' => $_POST['phone'] ?? '',
             'client_number' => $_POST['client_number'] ?? '',
             'group_vendor' => $_POST['group_vendor'] ?? ''
@@ -269,6 +270,7 @@ include_once '../templates/header.php';
                                     <th><?php echo __('common.name', 'Nombre'); ?></th>
                                     <th><?php echo __('clients.table.business_name', 'Razón Social'); ?></th>
                                     <th><?php echo __('common.address', 'Dirección'); ?></th>
+                                    <th><i class="bi bi-envelope"></i> Email</th>
                                     <th><?php echo __('clients.table.group_vendor', 'Grupo/Vendedor'); ?></th>
                                     <th><?php echo __('common.actions', 'Acciones'); ?></th>
                                 </tr>
@@ -281,6 +283,19 @@ include_once '../templates/header.php';
                                         <td><?php echo escape($client['name']); ?></td>
                                         <td><?php echo escape($client['business_name']); ?></td>
                                         <td><?php echo escape($client['address']); ?></td>
+                                        <td>
+                                            <?php if (!empty($client['email'])): ?>
+                                                <a href="mailto:<?php echo escape($client['email']); ?>" class="text-decoration-none">
+                                                    <i class="bi bi-envelope-check text-success"></i>
+                                                    <small><?php echo escape($client['email']); ?></small>
+                                                </a>
+                                            <?php else: ?>
+                                                <span class="text-muted">
+                                                    <i class="bi bi-envelope-slash"></i>
+                                                    <small>Sin email</small>
+                                                </span>
+                                            <?php endif; ?>
+                                        </td>
                                         <td><?php echo escape($client['group_vendor']); ?></td>
                                         <td>
                                             <div class="btn-group btn-group-sm">
@@ -424,6 +439,23 @@ include_once '../templates/header.php';
                             <label for="phone" class="form-label"><?php echo __('clients.form.phone', 'Teléfono'); ?></label>
                             <input type="text" class="form-control" id="phone" name="phone" 
                                    value="<?php echo $action === 'edit' ? escape($client['phone']) : ''; ?>">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">
+                                <i class="bi bi-envelope"></i> Email
+                            </label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="<?php echo $action === 'edit' ? escape($client['email'] ?? '') : ''; ?>"
+                                   placeholder="ejemplo@empresa.com">
+                            <small class="form-text text-muted">
+                                <i class="bi bi-info-circle"></i> Opcional: Para recibir notificaciones de citas programadas
+                            </small>
+                        </div>
+                        <div class="col-md-6">
+                            <!-- Espacio vacío para mantener el diseño -->
                         </div>
                     </div>
                     
@@ -582,6 +614,24 @@ include_once '../templates/header.php';
                             <tr>
                                 <th><?php echo __('clients.view.phone', 'Teléfono'); ?>:</th>
                                 <td><?php echo escape($client['phone']); ?></td>
+                            </tr>
+                            <tr>
+                                <th><i class="bi bi-envelope"></i> Email:</th>
+                                <td>
+                                    <?php if (!empty($client['email'])): ?>
+                                        <a href="mailto:<?php echo escape($client['email']); ?>">
+                                            <?php echo escape($client['email']); ?>
+                                        </a>
+                                        <span class="badge bg-success ms-2">
+                                            <i class="bi bi-check-circle"></i> Configurado para citas
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="text-muted">No configurado</span>
+                                        <span class="badge bg-warning ms-2">
+                                            <i class="bi bi-exclamation-triangle"></i> Sin notificaciones de citas
+                                        </span>
+                                    <?php endif; ?>
+                                </td>
                             </tr>
                             <tr>
                                 <th><?php echo __('clients.view.coordinates', 'Coordenadas'); ?>:</th>
@@ -769,5 +819,36 @@ include_once '../templates/header.php';
         });
     });
 </script>
+
+<style>
+/* Mejorar visibilidad de enlaces en modo oscuro */
+.table a {
+    color: #ffffff !important;
+    text-decoration: none;
+}
+
+.table a:hover {
+    color: #cccccc !important;
+    text-decoration: underline;
+}
+
+/* Especialmente para emails en la vista de detalles */
+.card-body table a {
+    color: #007bff !important;
+}
+
+.card-body table a:hover {
+    color: #0056b3 !important;
+}
+
+/* Asegurar que el texto sea visible en todas las tablas */
+.table td {
+    color: inherit;
+}
+
+.table .text-muted {
+    color: #6c757d !important;
+}
+</style>
 
 <?php include_once '../templates/footer.php'; ?>

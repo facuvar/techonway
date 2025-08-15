@@ -63,8 +63,8 @@ $activeRole = $_GET['role'] ?? 'admin';
     <?php
         $poppinsCssV = @filemtime(BASE_PATH . '/assets/css/poppins.css') ?: time();
         $styleCssV = @filemtime(BASE_PATH . '/assets/css/style.css') ?: time();
-        // Force cache refresh for new password toggle feature
-        $styleCssV = time();
+        // Force cache refresh for password toggle and login fixes
+        $styleCssV = time() + rand(1, 1000);
     ?>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/poppins.css?v=<?php echo $poppinsCssV; ?>">

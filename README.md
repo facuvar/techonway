@@ -113,8 +113,63 @@ Sistema web completo para la gestión de tickets de mantenimiento de ascensores,
 - Producción: variables de entorno de Railway
 
 ### APIs externas
+- **SendGrid** para envío de emails
 - **WhatsApp API** configurada en `config/whatsapp.php`
-- **Email SMTP** configurado en `includes/Mailer.php`
+
+### Configuración de SendGrid
+Para configurar el envío de emails con SendGrid:
+
+#### 🚀 Configuración Automática
+```bash
+# Para desarrollo local:
+php setup_sendgrid.php
+
+# Para Railway (requiere Railway CLI):
+./railway-sendgrid-config.sh  # Linux/Mac
+./railway-sendgrid-config.ps1 # Windows PowerShell
+```
+
+#### ⚙️ Configuración Manual
+1. **Obtener API Key de SendGrid:**
+   - Ve a [SendGrid Dashboard](https://app.sendgrid.com/)
+   - Settings → API Keys → Create API Key
+   - Selecciona "Full Access" o permisos de "Mail Send"
+
+2. **Variables de entorno (Railway):**
+   ```bash
+   SENDGRID_API_KEY=tu_api_key_aqui
+   SENDGRID_FROM_EMAIL=no-reply@techonway.com
+   FROM_EMAIL=no-reply@techonway.com
+   FROM_NAME=TechonWay - Sistema de Gestión
+   SMTP_HOST=smtp.sendgrid.net
+   SMTP_PORT=587
+   SMTP_USERNAME=apikey
+   SMTP_PASSWORD=$SENDGRID_API_KEY
+   ```
+
+3. **Configuración local (`config/local.php`):**
+   ```php
+   return [
+       'email' => [
+           'smtp_host' => 'smtp.sendgrid.net',
+           'smtp_port' => 587,
+           'smtp_username' => 'apikey',
+           'smtp_password' => 'tu_api_key_aqui',
+           'from_email' => 'no-reply@techonway.com',
+           'from_name' => 'TechonWay'
+       ]
+   ];
+   ```
+
+#### 🧪 Probar configuración
+```bash
+php test_sendgrid.php
+```
+
+#### 📚 Documentación adicional
+- [Guía completa de Railway + SendGrid](./railway-env-setup.md)
+- [SendGrid Dashboard](https://app.sendgrid.com/)
+- [Verificación de dominio](https://app.sendgrid.com/settings/sender_auth)
 
 ## 📝 Funcionalidades Principales
 

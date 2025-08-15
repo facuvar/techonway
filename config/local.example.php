@@ -1,40 +1,40 @@
 <?php
 /**
- * EJEMPLO de configuración local para desarrollo
+ * Configuración local para desarrollo
  * 
- * INSTRUCCIONES:
- * 1. Copia este archivo como "config/local.php"
- * 2. Completa las credenciales reales
- * 3. El archivo config/local.php NO se sube a Git
+ * Copia este archivo como 'local.php' y configura tus credenciales
+ * El archivo 'local.php' está en .gitignore y no se sube al repositorio
  */
 
 return [
+    // Configuración de base de datos local
     'database' => [
         'host' => 'localhost',
-        'dbname' => 'techonway',
+        'name' => 'techonway',
         'username' => 'root',
-        'password' => '',                    // Contraseña de MySQL local
-        'charset' => 'utf8mb4'
+        'password' => ''
     ],
     
-    'database_server' => [
-        'host' => 'localhost',
-        'dbname' => 'techonway_demo',
-        'username' => 'techonway_demousr',
-        'password' => 'TU_PASSWORD_SERVIDOR',  // Contraseña del servidor
-        'charset' => 'utf8'
-    ],
-    
+    // Configuración de WhatsApp local
     'whatsapp' => [
-        'token' => 'TU_WHATSAPP_TOKEN_AQUI'  // Token de WhatsApp Business API
+        'token' => 'tu_token_de_whatsapp_aqui',
+        // Otros parámetros si necesitas sobrescribir
     ],
     
-    'sendgrid' => [
-        'api_key' => 'TU_SENDGRID_API_KEY_AQUI'  // API Key de SendGrid
+    // Configuración de SMS local
+    'sms' => [
+        'account_sid' => 'tu_twilio_sid_aqui',
+        'auth_token' => 'tu_twilio_token_aqui',
+        'from_number' => '+1234567890'
     ],
     
-    'twilio' => [
-        'auth_token' => 'TU_TWILIO_TOKEN_AQUI'  // Auth Token de Twilio
+    // Configuración de Email/SendGrid local
+    'email' => [
+        'smtp_host' => 'smtp.sendgrid.net',
+        'smtp_port' => 587,
+        'smtp_username' => 'apikey',
+        'smtp_password' => 'tu_sendgrid_api_key_aqui',
+        'from_email' => 'tu_email@dominio.com',
+        'from_name' => 'TechonWay - Sistema Local'
     ]
 ];
-?>

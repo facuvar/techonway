@@ -71,6 +71,20 @@ $clients = $db->select("
     ORDER BY c.name
 ", [$technicianId]);
 
+// Check if technician has an active visit
+$activeVisit = $db->selectOne("
+    SELECT v.id, v.start_time, t.id as ticket_id, t.description,
+           c.name as client_name, c.business_name, c.address
+    FROM visits v
+    JOIN tickets t ON v.ticket_id = t.id
+    JOIN clients c ON t.client_id = c.id
+    WHERE t.technician_id = ? 
+    AND v.start_time IS NOT NULL 
+    AND v.end_time IS NULL
+    ORDER BY v.start_time DESC
+    LIMIT 1
+", [$technicianId]);
+
 // Page title
 $pageTitle = __('visits.title.history', 'Historial de Visitas');
 
@@ -135,6 +149,60 @@ include_once '../templates/header.php';
             </form>
         </div>
     </div>
+    
+    <!-- Active Visit Alert -->
+    <?php if ($activeVisit): ?>
+        <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+            <div class="d-flex align-items-center">
+                <div class="flex-shrink-0 me-3">
+                    <i class="bi bi-clock-history" style="font-size: 2rem; color: #0dcaf0;"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h5 class="alert-heading mb-2">
+                        <i class="bi bi-tools"></i> Tienes una visita activa en progreso
+                    </h5>
+                    <p class="mb-2">
+                        <strong>Cliente:</strong> <?php echo escape($activeVisit['client_name']); ?>
+                        <?php if (!empty($activeVisit['business_name'])): ?>
+                            - <?php echo escape($activeVisit['business_name']); ?>
+                        <?php endif; ?>
+                    </p>
+                    <p class="mb-2">
+                        <strong>Dirección:</strong> <?php echo escape($activeVisit['address']); ?>
+                    </p>
+                    <p class="mb-2">
+                        <strong>Iniciada:</strong> 
+                        <?php 
+                        $startTime = new DateTime($activeVisit['start_time']);
+                        echo $startTime->format('d/m/Y H:i');
+                        
+                        // Calcular duración
+                        $now = new DateTime();
+                        $duration = $startTime->diff($now);
+                        $totalMinutes = ($duration->days * 24 * 60) + ($duration->h * 60) + $duration->i;
+                        $hours = floor($totalMinutes / 60);
+                        $minutes = $totalMinutes % 60;
+                        $durationText = $hours > 0 ? "{$hours}h {$minutes}m" : "{$minutes}m";
+                        ?>
+                        <span class="badge bg-primary ms-2">Duración: <?php echo $durationText; ?></span>
+                    </p>
+                    <p class="mb-0">
+                        <small class="text-muted">
+                            <strong>Ticket #<?php echo $activeVisit['ticket_id']; ?>:</strong> 
+                            <?php echo escape(substr($activeVisit['description'], 0, 80)) . (strlen($activeVisit['description']) > 80 ? '...' : ''); ?>
+                        </small>
+                    </p>
+                </div>
+                <div class="flex-shrink-0 ms-3">
+                    <a href="active_visit.php?id=<?php echo $activeVisit['id']; ?>" 
+                       class="btn btn-primary btn-lg">
+                        <i class="bi bi-play-circle"></i> Continuar Visita
+                    </a>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
     
     <!-- Visits List -->
     <div class="card">

@@ -70,6 +70,11 @@
         </a>
     </li>
     <li class="nav-item">
+        <a class="nav-link <?php echo isActive('calendar.php'); ?>" href="<?php echo BASE_URL; ?>admin/calendar.php">
+            <i class="bi bi-calendar-event"></i> Calendario de Citas
+        </a>
+    </li>
+    <li class="nav-item">
         <a class="nav-link <?php echo isActive('service_requests.php'); ?>" href="<?php echo BASE_URL; ?>admin/service_requests.php">
             <i class="bi bi-journal-text"></i> <?php echo __('sidebar.service_requests'); ?>
         </a>

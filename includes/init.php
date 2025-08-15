@@ -80,6 +80,8 @@ if ($isLocal) {
 require_once INCLUDE_PATH . '/Database.php';
 require_once INCLUDE_PATH . '/Auth.php';
 require_once INCLUDE_PATH . '/i18n.php';
+require_once INCLUDE_PATH . '/SecurityCodeGenerator.php';
+require_once INCLUDE_PATH . '/EmailNotifier.php';
 
 // Initialize auth
 $auth = new Auth();

@@ -34,9 +34,22 @@ $completedTicketsCount = $db->selectOne(
     [$technicianId]
 )['count'];
 
+// Get scheduled appointments for today and upcoming days
+$scheduledAppointments = $db->select("
+    SELECT t.id, t.description, t.status, t.scheduled_date, t.scheduled_time, t.security_code,
+           c.name as client_name, c.business_name, c.address, c.latitude, c.longitude
+    FROM tickets t
+    JOIN clients c ON t.client_id = c.id
+    WHERE t.technician_id = ? 
+    AND t.scheduled_date IS NOT NULL 
+    AND t.scheduled_date >= CURDATE()
+    ORDER BY t.scheduled_date, t.scheduled_time
+    LIMIT 5
+", [$technicianId]);
+
 // Get assigned tickets
 $assignedTickets = $db->select("
-    SELECT t.id, t.description, t.status, t.created_at, 
+    SELECT t.id, t.description, t.status, t.created_at, t.scheduled_date, t.scheduled_time, t.security_code,
            c.name as client_name, c.business_name, c.address, c.latitude, c.longitude
     FROM tickets t
     JOIN clients c ON t.client_id = c.id
@@ -116,13 +129,121 @@ include_once '../templates/header.php';
         </div>
     </div>
     
+    <!-- Scheduled Appointments -->
+    <?php if (count($scheduledAppointments) > 0): ?>
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-calendar-event"></i> Próximas Citas Programadas
+                    </h5>
+                    <span class="badge bg-light text-primary"><?php echo count($scheduledAppointments); ?> citas</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <?php foreach ($scheduledAppointments as $appointment): ?>
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card appointment-card" style="border: 2px solid #2D3142; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="card-title mb-0">
+                                                <i class="bi bi-building"></i> <?php echo escape($appointment['client_name']); ?>
+                                            </h6>
+                                            <?php 
+                                            $statusClass = match($appointment['status']) {
+                                                'pending' => 'warning',
+                                                'in_progress' => 'info',
+                                                'completed' => 'success',
+                                                'not_completed' => 'danger',
+                                                default => 'secondary'
+                                            };
+                                            $statusText = match($appointment['status']) {
+                                                'pending' => 'Pendiente',
+                                                'in_progress' => 'En Progreso',
+                                                'completed' => 'Completado',
+                                                'not_completed' => 'No Completado',
+                                                default => 'Desconocido'
+                                            };
+                                            ?>
+                                            <span class="badge bg-<?php echo $statusClass; ?> fs-6"><?php echo $statusText; ?></span>
+                                        </div>
+                                        
+                                        <div class="appointment-details">
+                                            <div class="mb-2">
+                                                <i class="bi bi-calendar3 text-primary"></i>
+                                                <strong>
+                                                    <?php 
+                                                    $date = new DateTime($appointment['scheduled_date']);
+                                                    $today = new DateTime();
+                                                    $tomorrow = new DateTime('+1 day');
+                                                    
+                                                    if ($date->format('Y-m-d') === $today->format('Y-m-d')) {
+                                                        echo "HOY";
+                                                    } elseif ($date->format('Y-m-d') === $tomorrow->format('Y-m-d')) {
+                                                        echo "MAÑANA";
+                                                    } else {
+                                                        echo $date->format('d/m/Y');
+                                                    }
+                                                    ?>
+                                                </strong>
+                                            </div>
+                                            
+                                            <div class="mb-2">
+                                                <i class="bi bi-clock text-info"></i>
+                                                <strong><?php echo date('H:i', strtotime($appointment['scheduled_time'])); ?> hs</strong>
+                                            </div>
+                                            
+                                            <div class="mb-2">
+                                                <i class="bi bi-geo-alt text-success"></i>
+                                                <small><?php echo escape($appointment['address']); ?></small>
+                                            </div>
+                                            
+                                            <?php if (!empty($appointment['security_code'])): ?>
+                                            <div class="mb-2">
+                                                <i class="bi bi-lock text-warning"></i>
+                                                <span class="badge bg-warning text-dark">Código: <?php echo $appointment['security_code']; ?></span>
+                                            </div>
+                                            <?php endif; ?>
+                                            
+                                            <div class="mt-3">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-info-circle"></i>
+                                                    <?php echo escape(substr($appointment['description'], 0, 60)) . (strlen($appointment['description']) > 60 ? '...' : ''); ?>
+                                                </small>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-3 d-flex gap-2">
+                                            <a href="ticket-detail.php?id=<?php echo $appointment['id']; ?>" 
+                                               class="btn btn-sm flex-fill" style="background-color: #2D3142; border-color: #2D3142; color: white;">
+                                                <i class="bi bi-eye"></i> Ver Detalles
+                                            </a>
+                                            <?php if ($appointment['status'] === 'pending'): ?>
+                                            <a href="select_ticket.php?ticket_id=<?php echo $appointment['id']; ?>" 
+                                               class="btn btn-sm btn-success flex-fill">
+                                                <i class="bi bi-play"></i> Iniciar
+                                            </a>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+    
     <!-- Assigned Tickets -->
     <div class="row mt-4">
         <div class="col-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title"><?php echo __('tech.dashboard.assigned.title', 'Mis Tickets Asignados'); ?></h5>
-                    <a href="my-tickets.php" class="btn btn-sm btn-outline-primary"><?php echo __('common.view_all', 'Ver Todos'); ?></a>
+                    <a href="my-tickets.php" class="btn btn-sm" style="background-color: #2D3142; border-color: #2D3142; color: white;"><?php echo __('common.view_all', 'Ver Todos'); ?></a>
                 </div>
                 <div class="card-body">
                     <?php if (count($assignedTickets) > 0): ?>
@@ -175,16 +296,16 @@ include_once '../templates/header.php';
                                                 </span>
                                             </td>
                                             <td>
-                                                <a href="ticket-detail.php?id=<?php echo $ticket['id']; ?>" class="btn btn-sm btn-outline-primary">
+                                                <a href="ticket-detail.php?id=<?php echo $ticket['id']; ?>" class="btn btn-sm" style="background-color: #2D3142; border-color: #2D3142; color: white;">
                                                     <i class="bi bi-eye"></i> <?php echo __('common.view', 'Ver'); ?>
                                                 </a>
                                                 
                                                 <?php if ($ticket['status'] === 'pending'): ?>
-                                                 <a href="scan_qr.php?action=start&ticket_id=<?php echo $ticket['id']; ?>" class="btn btn-sm btn-outline-success">
+                                                 <a href="scan_qr.php?action=start&ticket_id=<?php echo $ticket['id']; ?>" class="btn btn-sm btn-success">
                                                      <i class="bi bi-play-fill"></i> <?php echo __('visits.actions.start_visit', 'Iniciar Visita'); ?>
                                                 </a>
                                                 <?php elseif ($ticket['status'] === 'in_progress'): ?>
-                                                 <a href="scan_qr.php?action=end&ticket_id=<?php echo $ticket['id']; ?>" class="btn btn-sm btn-outline-info">
+                                                 <a href="scan_qr.php?action=end&ticket_id=<?php echo $ticket['id']; ?>" class="btn btn-sm btn-info">
                                                      <i class="bi bi-check-circle"></i> <?php echo __('visits.actions.finish', 'Finalizar'); ?>
                                                 </a>
                                                 <?php endif; ?>
