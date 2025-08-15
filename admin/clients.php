@@ -1,9 +1,23 @@
 <?php
-// Manejo de sesiones simplificado para Railway
+// Manejo de sesiones robusto para Railway
 session_start();
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header('Location: /admin/force_login_and_calendar.php');
-    exit();
+
+// Debug: Verificar si es una solicitud desde el dashboard
+$from_dashboard = isset($_GET['from_dashboard']) || isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'dashboard.php') !== false;
+
+// Si no hay sesión válida Y no viene del dashboard, intentar recuperar o redirigir
+if ((!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') && !$from_dashboard) {
+    // Intentar una verificación más flexible
+    if (isset($_COOKIE[session_name()])) {
+        // Hay cookie de sesión, pero tal vez no se cargó la sesión
+        session_regenerate_id(true);
+    }
+    
+    // Si aún no hay sesión válida, redirigir
+    if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+        header('Location: /admin/force_login_and_calendar.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
+        exit();
+    }
 }
 
 // Cargar solo lo esencial
