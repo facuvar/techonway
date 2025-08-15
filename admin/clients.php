@@ -56,12 +56,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (isset($_POST['client_id']) && !empty($_POST['client_id'])) {
                         // Editar cliente existente
                         $client_id = $_POST['client_id'];
-                        $db->update("UPDATE clients SET name = ?, email = ?, phone = ?, business_name = ?, address = ?, zone = ? WHERE id = ?", 
+                        $db->query("UPDATE clients SET name = ?, email = ?, phone = ?, business_name = ?, address = ?, zone = ? WHERE id = ?", 
                                    [$name, $email, $phone, $business_name, $address, $zone, $client_id]);
                         $message = 'Cliente actualizado correctamente';
                     } else {
                         // Crear nuevo cliente
-                        $db->insert("INSERT INTO clients (name, email, phone, business_name, address, zone) VALUES (?, ?, ?, ?, ?, ?)", 
+                        $db->query("INSERT INTO clients (name, email, phone, business_name, address, zone) VALUES (?, ?, ?, ?, ?, ?)", 
                                    [$name, $email, $phone, $business_name, $address, $zone]);
                         $message = 'Cliente creado correctamente';
                     }
@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($tickets['count'] > 0) {
                     $error = 'No se puede eliminar el cliente porque tiene tickets asociados';
                 } else {
-                $db->delete("DELETE FROM clients WHERE id = ?", [$client_id]);
+                $db->query("DELETE FROM clients WHERE id = ?", [$client_id]);
                 $message = 'Cliente eliminado correctamente';
             }
             $action = 'list';
