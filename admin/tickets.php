@@ -17,6 +17,7 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
 
 require_once '../includes/Database.php';
 require_once '../includes/Auth.php';
+require_once '../includes/Mailer.php';
 
 if (!defined('BASE_URL')) {
     define('BASE_URL', '/');
@@ -105,6 +106,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (isset($_POST['ticket_id']) && !empty($_POST['ticket_id'])) {
                     // Update
                     $ticketId = $_POST['ticket_id'];
+                    
+                    // Obtener datos anteriores para comparar
+                    $oldTicket = $db->selectOne("SELECT scheduled_date, scheduled_time FROM tickets WHERE id = ?", [$ticketId]);
+                    $isReschedule = ($oldTicket && ($oldTicket['scheduled_date'] != $scheduledDate || $oldTicket['scheduled_time'] != $scheduledTime));
+                    
                     $db->query("
                         UPDATE tickets SET 
                             client_id = ?, 
@@ -116,14 +122,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             security_code = ?
                         WHERE id = ?
                     ", [$clientId, $assignedTo, $description, $priority, $scheduledDate, $scheduledTime, $securityCode, $ticketId]);
+                    
                     $message = 'Ticket actualizado exitosamente';
+                    
+                    // Enviar email si hay fecha y hora programada
+                    if ($scheduledDate && $scheduledTime && $securityCode) {
+                        try {
+                            $client = $db->selectOne("SELECT * FROM clients WHERE id = ?", [$clientId]);
+                            if ($client && $client['email']) {
+                                $mailer = new Mailer();
+                                $subject = $isReschedule ? 'Reprogramación de Cita - TechonWay' : 'Actualización de Cita - TechonWay';
+                                $emailBody = $isReschedule ? 
+                                    "Su cita ha sido reprogramada.\n\nNueva fecha: " . date('d/m/Y', strtotime($scheduledDate)) . "\nNueva hora: " . date('H:i', strtotime($scheduledTime)) . "\nCódigo de seguridad: " . $securityCode :
+                                    "Su cita ha sido actualizada.\n\nFecha: " . date('d/m/Y', strtotime($scheduledDate)) . "\nHora: " . date('H:i', strtotime($scheduledTime)) . "\nCódigo de seguridad: " . $securityCode;
+                                
+                                $mailer->send($client['email'], $subject, $emailBody);
+                                $message .= ' - Email enviado al cliente';
+                            }
+                        } catch (Exception $e) {
+                            $message .= ' - Error al enviar email: ' . $e->getMessage();
+                        }
+                    }
                 } else {
                     // Insert
                     $db->query("
                         INSERT INTO tickets (client_id, assigned_to, description, priority, scheduled_date, scheduled_time, security_code, status) 
                         VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')
                     ", [$clientId, $assignedTo, $description, $priority, $scheduledDate, $scheduledTime, $securityCode]);
+                    
+                    $ticketId = $db->getPdo()->lastInsertId();
                     $message = 'Ticket creado exitosamente';
+                    
+                    // Enviar email si hay fecha y hora programada
+                    if ($scheduledDate && $scheduledTime && $securityCode) {
+                        try {
+                            $client = $db->selectOne("SELECT * FROM clients WHERE id = ?", [$clientId]);
+                            if ($client && $client['email']) {
+                                $mailer = new Mailer();
+                                $subject = 'Nueva Cita Programada - TechonWay';
+                                $emailBody = "Se ha programado una nueva cita para usted.\n\nFecha: " . date('d/m/Y', strtotime($scheduledDate)) . "\nHora: " . date('H:i', strtotime($scheduledTime)) . "\nCódigo de seguridad: " . $securityCode . "\n\nDescripción: " . $description;
+                                
+                                $mailer->send($client['email'], $subject, $emailBody);
+                                $message .= ' - Email enviado al cliente';
+                            }
+                        } catch (Exception $e) {
+                            $message .= ' - Error al enviar email: ' . $e->getMessage();
+                        }
+                    }
                 }
                 
                 // Redirigir para evitar resubmit
@@ -392,6 +437,21 @@ include_once '../templates/header.php';
                         </div>
                     </div>
                 </div>
+
+                <!-- Mostrar código de seguridad si existe -->
+                <?php if ($action === 'edit' && $ticket && $ticket['security_code'] && $ticket['scheduled_date'] && $ticket['scheduled_time']): ?>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Código de Seguridad</label>
+                            <div class="alert alert-info">
+                                <i class="bi bi-shield-check"></i> <strong><?php echo $ticket['security_code']; ?></strong>
+                                <br><small class="text-muted">Este código se envía al cliente por email cuando se programa la cita</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
 
                 <div class="d-flex gap-2">
                     <button type="submit" name="save_ticket" class="btn btn-success">

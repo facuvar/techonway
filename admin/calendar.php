@@ -246,6 +246,39 @@ table.table thead th {
 
 // Include header
 include_once '../templates/header.php';
+
+// Agregar CSS adicional directamente al head después de cargar
+echo '<style>
+/* CSS CRÍTICO PARA CALENDARIO - PRIORIDAD MÁXIMA */
+body, .main-content, .container-fluid, .py-4 {
+    background-color: #f8f9fa !important;
+}
+
+/* Enlaces de navegación convertidos a botones */
+a[href*="month"], .btn-month-nav {
+    background-color: #505775 !important;
+    color: white !important;
+    padding: 8px 16px !important;
+    text-decoration: none !important;
+    border-radius: 6px !important;
+    display: inline-block !important;
+    border: none !important;
+    font-weight: 500 !important;
+}
+
+a[href*="month"]:hover, .btn-month-nav:hover {
+    background-color: #3d4258 !important;
+    color: white !important;
+    text-decoration: none !important;
+}
+
+/* Cabeceras de tabla específicas */
+table thead th, .table thead th, .calendar-table thead th {
+    background-color: #505775 !important;
+    color: white !important;
+    border: 1px solid #505775 !important;
+}
+</style>';
 ?>
 
 <div class="container-fluid py-4">
