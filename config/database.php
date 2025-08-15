@@ -52,7 +52,7 @@ if ($isLocal) {
         return [
             'host' => $_ENV['DB_HOST'] ?? $dbConfig['host'],
             'dbname' => $_ENV['DB_NAME'] ?? $dbConfig['dbname'],
-            'username' => $_ENV['DB_USER'] ?? $dbConfig['username'],
+            'username' => $_ENV['DB_USERNAME'] ?? $_ENV['DB_USER'] ?? $dbConfig['username'],
             'password' => $_ENV['DB_PASSWORD'] ?? $dbConfig['password'],
             'charset' => 'utf8mb4',
             'options' => [
@@ -66,7 +66,7 @@ if ($isLocal) {
         return [
             'host' => $_ENV['DB_HOST'] ?? 'localhost',
             'dbname' => $_ENV['DB_NAME'] ?? '',
-            'username' => $_ENV['DB_USER'] ?? '',
+            'username' => $_ENV['DB_USERNAME'] ?? $_ENV['DB_USER'] ?? 'root',
             'password' => $_ENV['DB_PASSWORD'] ?? '',
             'charset' => 'utf8mb4',
             'options' => [
