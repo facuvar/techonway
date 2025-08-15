@@ -1,14 +1,7 @@
 <?php
-/**
- * Calendar FINAL - Integrado al panel admin con manejo de sesiones Railway
- */
-
-// Iniciar sesión pero SIN usar includes/init.php por problemas en Railway
+// Manejo de sesiones simplificado para Railway
 session_start();
-
-// Si no hay sesión válida, manejar gracefully
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    // Intentar recuperar o redirigir al login que funciona
     header('Location: /admin/force_login_and_calendar.php');
     exit();
 }
@@ -145,7 +138,37 @@ try {
             </div>
             <div class="offcanvas-body p-0">
                 <div class="sidebar-content">
-                    <?php include 'sidebar_simple.php'; ?>
+                    <!-- Mobile sidebar content -->
+                    <div class="text-center p-3">
+                        <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="TechonWay" style="height: 40px;">
+                    </div>
+                    <nav class="nav flex-column">
+                        <a class="nav-link" href="/admin/dashboard.php">
+                            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                        </a>
+                        <a class="nav-link" href="/admin/clients.php">
+                            <i class="bi bi-people me-2"></i>Clientes
+                        </a>
+                        <a class="nav-link" href="/admin/tickets.php">
+                            <i class="bi bi-ticket-perforated me-2"></i>Tickets
+                        </a>
+                        <a class="nav-link active" href="/admin/calendar.php">
+                            <i class="bi bi-calendar3 me-2"></i>Calendario
+                        </a>
+                        <a class="nav-link" href="/admin/visits.php">
+                            <i class="bi bi-geo-alt me-2"></i>Visitas
+                        </a>
+                        <a class="nav-link" href="/admin/users.php">
+                            <i class="bi bi-person-gear me-2"></i>Usuarios
+                        </a>
+                        <a class="nav-link" href="/admin/settings.php">
+                            <i class="bi bi-gear me-2"></i>Configuración
+                        </a>
+                        <hr>
+                        <a class="nav-link" href="/logout.php">
+                            <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                        </a>
+                    </nav>
                 </div>
             </div>
         </div>
@@ -154,7 +177,36 @@ try {
             <div class="row">
                 <!-- Sidebar -->
                 <div class="col-md-3 col-lg-2 px-0 sidebar d-none d-md-block">
-                    <?php include 'sidebar_simple.php'; ?>
+                    <div class="sidebar-brand text-center p-3">
+                        <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="TechonWay" style="height: 50px;">
+                    </div>
+                    <nav class="nav flex-column">
+                        <a class="nav-link" href="/admin/dashboard.php">
+                            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                        </a>
+                        <a class="nav-link" href="/admin/clients.php">
+                            <i class="bi bi-people me-2"></i>Clientes
+                        </a>
+                        <a class="nav-link" href="/admin/tickets.php">
+                            <i class="bi bi-ticket-perforated me-2"></i>Tickets
+                        </a>
+                        <a class="nav-link active" href="/admin/calendar.php">
+                            <i class="bi bi-calendar3 me-2"></i>Calendario
+                        </a>
+                        <a class="nav-link" href="/admin/visits.php">
+                            <i class="bi bi-geo-alt me-2"></i>Visitas
+                        </a>
+                        <a class="nav-link" href="/admin/users.php">
+                            <i class="bi bi-person-gear me-2"></i>Usuarios
+                        </a>
+                        <a class="nav-link" href="/admin/settings.php">
+                            <i class="bi bi-gear me-2"></i>Configuración
+                        </a>
+                        <hr>
+                        <a class="nav-link" href="/logout.php">
+                            <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                        </a>
+                    </nav>
                 </div>
                 <!-- Main content -->
                 <div class="col-12 col-md-9 col-lg-10 ms-auto main-content">
