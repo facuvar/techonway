@@ -112,7 +112,7 @@ if (!isset($GLOBALS['extra_css'])) {
     $GLOBALS['extra_css'] = [];
 }
 $GLOBALS['extra_css'][] = '<style>
-/* Estilos del calendario TechonWay - v1.2 */
+/* Estilos del calendario TechonWay - v1.3 FORCE DEPLOY */
 
 /* Fondo gris para toda la página - MUY IMPORTANTE */
 body, .main-content, .container-fluid {
