@@ -10,15 +10,30 @@ session_start();
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
     $_SESSION['user_id'] = 1;
     $_SESSION['role'] = 'admin';
-    $_SESSION['user_name'] = 'Admin Railway';
+    $_SESSION['user_name'] = 'Administrador TechonWay';
     $_SESSION['user_email'] = 'admin@techonway.com';
+    $_SESSION['user_role'] = 'admin';
 }
 
 require_once '../includes/Database.php';
+require_once '../includes/Auth.php';
+require_once '../includes/functions.php';
 
 if (!defined('BASE_URL')) {
     define('BASE_URL', '/');
 }
+
+if (!defined('BASE_PATH')) {
+    define('BASE_PATH', dirname(__DIR__));
+}
+
+if (!defined('TEMPLATE_PATH')) {
+    define('TEMPLATE_PATH', BASE_PATH . '/templates');
+}
+
+// Initialize auth
+$auth = new Auth();
+$pageTitle = 'Gestión de Tickets';
 
 // Función simple para generar código de seguridad
 function generateSecurityCode() {
@@ -128,161 +143,35 @@ if (isset($_GET['msg'])) {
     $message = $_GET['msg'];
 }
 
-?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestión de Tickets para Ascensores</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
-    <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>assets/img/favicon.png">
-    
-    <style>
-    .form-control[type="date"], .form-control[type="time"] {
-        background-color: #2D2D2D;
-        color: white;
-        border: 1px solid #555;
-    }
-    .form-control[type="date"]::-webkit-calendar-picker-indicator,
-    .form-control[type="time"]::-webkit-calendar-picker-indicator {
-        filter: invert(1);
-        cursor: pointer;
-    }
-    .form-control[type="date"]::after {
-        width: 0px;
-    }
-    .form-control[type="time"]::after {
-        width: 0px;
-    }
-    </style>
-</head>
-<body class="dark-mode has-sidebar">
-    <!-- Top Navbar (mobile) -->
-    <nav class="navbar top-navbar d-flex align-items-center px-3 d-md-none">
-        <div class="d-flex align-items-center gap-2">
-            <button class="btn btn-outline-light d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
-                <i class="bi bi-list" style="font-size:1.25rem;"></i>
-            </button>
-            <a class="navbar-brand mb-0 h1 d-flex align-items-center" href="<?php echo BASE_URL; ?>dashboard.php">
-                <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="Logo" style="height:28px;width:auto;"/>
-            </a>
-        </div>
-    </nav>
-    
-    <!-- Offcanvas Sidebar for mobile -->
-    <div class="offcanvas offcanvas-start mobile-sidebar" tabindex="-1" id="mobileSidebar">
-        <div class="offcanvas-header border-bottom">
-            <h5 class="offcanvas-title">Menú</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
-        </div>
-        <div class="offcanvas-body p-0">
-            <div class="sidebar-content">
-                <!-- Mobile sidebar content -->
-                <div class="text-center p-3">
-                    <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="TechonWay" style="height: 40px;">
-                </div>
-                <div class="text-center p-3 border-bottom">
-                    <i class="bi bi-person-circle" style="font-size:2rem;"></i>
-                    <div class="mt-2"><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></div>
-                    <small class="text-light">Administrador</small>
-                </div>
-                <nav class="nav flex-column">
-                    <a class="nav-link" href="/admin/dashboard.php">
-                        <i class="bi bi-speedometer2 me-2"></i>Dashboard
-                    </a>
-                    <a class="nav-link" href="/admin/clients.php">
-                        <i class="bi bi-building me-2"></i>Clientes
-                    </a>
-                    <a class="nav-link" href="/admin/technicians.php">
-                        <i class="bi bi-person-gear me-2"></i>Técnicos
-                    </a>
-                    <a class="nav-link" href="/admin/admins.php">
-                        <i class="bi bi-shield-lock me-2"></i>Administradores
-                    </a>
-                    <a class="nav-link active" href="/admin/tickets.php">
-                        <i class="bi bi-ticket-perforated me-2"></i>Tickets
-                    </a>
-                    <a class="nav-link" href="/admin/calendar.php">
-                        <i class="bi bi-calendar-event me-2"></i>Calendario
-                    </a>
-                    <a class="nav-link" href="/admin/service_requests.php">
-                        <i class="bi bi-journal-text me-2"></i>Solicitudes
-                    </a>
-                    <a class="nav-link" href="/admin/visits.php">
-                        <i class="bi bi-clipboard-check me-2"></i>Visitas
-                    </a>
-                    <a class="nav-link" href="/admin/import_clients.php">
-                        <i class="bi bi-file-earmark-excel me-2"></i>Importar
-                    </a>
-                    <a class="nav-link" href="/profile.php">
-                        <i class="bi bi-person me-2"></i>Perfil
-                    </a>
-                    <hr>
-                    <a class="nav-link" href="/logout.php">
-                        <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
-                    </a>
-                </nav>
-            </div>
-        </div>
-    </div>
+<?php
+// Add custom CSS for date/time inputs
+if (!isset($GLOBALS['extra_css'])) {
+    $GLOBALS['extra_css'] = [];
+}
+$GLOBALS['extra_css'][] = '<style>
+.form-control[type="date"], .form-control[type="time"] {
+    background-color: #2D2D2D;
+    color: white;
+    border: 1px solid #555;
+}
+.form-control[type="date"]::-webkit-calendar-picker-indicator,
+.form-control[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+.form-control[type="date"]::after {
+    width: 0px;
+}
+.form-control[type="time"]::after {
+    width: 0px;
+}
+</style>';
 
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 px-0 sidebar d-none d-md-block">
-                <div class="sidebar-brand text-center p-3">
-                    <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="TechonWay" style="height: 50px;">
-                </div>
-                <div class="text-center p-3 border-bottom">
-                    <i class="bi bi-person-circle" style="font-size:2.5rem;"></i>
-                    <div class="mt-2"><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></div>
-                    <small class="text-light">Administrador</small>
-                </div>
-                <nav class="nav flex-column">
-                    <a class="nav-link" href="/admin/dashboard.php">
-                        <i class="bi bi-speedometer2 me-2"></i>Dashboard
-                    </a>
-                    <a class="nav-link" href="/admin/clients.php">
-                        <i class="bi bi-building me-2"></i>Clientes
-                    </a>
-                    <a class="nav-link" href="/admin/technicians.php">
-                        <i class="bi bi-person-gear me-2"></i>Técnicos
-                    </a>
-                    <a class="nav-link" href="/admin/admins.php">
-                        <i class="bi bi-shield-lock me-2"></i>Administradores
-                    </a>
-                    <a class="nav-link active" href="/admin/tickets.php">
-                        <i class="bi bi-ticket-perforated me-2"></i>Tickets
-                    </a>
-                    <a class="nav-link" href="/admin/calendar.php">
-                        <i class="bi bi-calendar-event me-2"></i>Calendario
-                    </a>
-                    <a class="nav-link" href="/admin/service_requests.php">
-                        <i class="bi bi-journal-text me-2"></i>Solicitudes
-                    </a>
-                    <a class="nav-link" href="/admin/visits.php">
-                        <i class="bi bi-clipboard-check me-2"></i>Visitas
-                    </a>
-                    <a class="nav-link" href="/admin/import_clients.php">
-                        <i class="bi bi-file-earmark-excel me-2"></i>Importar
-                    </a>
-                    <a class="nav-link" href="/profile.php">
-                        <i class="bi bi-person me-2"></i>Perfil
-                    </a>
-                    <hr>
-                    <a class="nav-link" href="/logout.php">
-                        <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
-                    </a>
-                </nav>
-            </div>
-            <!-- Main content -->
-            <div class="col-12 col-md-9 col-lg-10 ms-auto main-content">
-                
-                <!-- Tickets Content -->
-                <div class="container-fluid py-4">
+// Include header
+include_once '../templates/header.php';
+?>
+
+<div class="container-fluid py-4">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h1>Gestión de Tickets</h1>
                 <?php if ($action === 'list'): ?>
@@ -475,43 +364,44 @@ if (isset($_GET['msg'])) {
                 </div>
             </div>
                     <?php endif; ?>
-                </div>
+</div>
+
+<!-- Modal de confirmación para eliminar ticket -->
+<div class="modal fade" id="deleteTicketModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                ¿Está seguro que desea eliminar el ticket para el cliente "<span id="ticketClientName"></span>"?
+                <br><small class="text-danger">Esta acción no se puede deshacer.</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" style="display: inline;">
+                    <input type="hidden" name="ticket_id" id="deleteTicketId">
+                    <button type="submit" name="delete_ticket" class="btn btn-danger">Eliminar</button>
+                </form>
             </div>
         </div>
     </div>
-    
-    <!-- Modal de confirmación para eliminar ticket -->
-    <div class="modal fade" id="deleteTicketModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirmar Eliminación</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    ¿Está seguro que desea eliminar el ticket para el cliente "<span id="ticketClientName"></span>"?
-                    <br><small class="text-danger">Esta acción no se puede deshacer.</small>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <form method="POST" style="display: inline;">
-                        <input type="hidden" name="ticket_id" id="deleteTicketId">
-                        <button type="submit" name="delete_ticket" class="btn btn-danger">Eliminar</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-    function confirmDeleteTicket(ticketId, clientName) {
-        document.getElementById('ticketClientName').textContent = clientName;
-        document.getElementById('deleteTicketId').value = ticketId;
-        new bootstrap.Modal(document.getElementById('deleteTicketModal')).show();
-    }
-    </script>
-</body>
-</html>
+</div>
+
+<?php
+// Add extra JS after the template footer
+if (!isset($GLOBALS['extra_js'])) {
+    $GLOBALS['extra_js'] = [];
+}
+$GLOBALS['extra_js'][] = '<script>
+function confirmDeleteTicket(ticketId, clientName) {
+    document.getElementById("ticketClientName").textContent = clientName;
+    document.getElementById("deleteTicketId").value = ticketId;
+    new bootstrap.Modal(document.getElementById("deleteTicketModal")).show();
+}
+</script>';
+
+// Include footer
+include_once '../templates/footer.php';
+?>
