@@ -1,75 +1,75 @@
 <?php
 /**
- * Diagnóstico para Railway - Debug de errores
+ * Script de debug para Railway
  */
 
-// Mostrar todos los errores
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+echo "<h1>Debug TechOnWay en Railway</h1>";
 
-echo "<h1>🔍 TechonWay Railway Diagnóstico</h1>";
+// Verificar variables de entorno
+echo "<h2>Variables de Entorno</h2>";
+echo "<p>DB_HOST: " . ($_ENV['DB_HOST'] ?? 'NO DEFINIDO') . "</p>";
+echo "<p>DB_NAME: " . ($_ENV['DB_NAME'] ?? 'NO DEFINIDO') . "</p>";
+echo "<p>SENDGRID_API_KEY: " . (isset($_ENV['SENDGRID_API_KEY']) ? 'CONFIGURADO' : 'NO DEFINIDO') . "</p>";
 
-echo "<h2>✅ PHP Info</h2>";
-echo "<strong>PHP Version:</strong> " . phpversion() . "<br>";
-echo "<strong>Document Root:</strong> " . $_SERVER['DOCUMENT_ROOT'] . "<br>";
-echo "<strong>Current Dir:</strong> " . getcwd() . "<br>";
+// Verificar conexión a base de datos
+echo "<h2>Conexión a Base de Datos</h2>";
+try {
+    $host = $_ENV['DB_HOST'] ?? 'localhost';
+    $dbname = $_ENV['DB_NAME'] ?? 'railway';
+    $username = $_ENV['DB_USER'] ?? 'root';
+    $password = $_ENV['DB_PASSWORD'] ?? '';
+    
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
+    echo "<p style='color:green'>✅ Conexión exitosa a: $dbname</p>";
+    
+    // Verificar tablas
+    $tables = $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
+    echo "<p>Tablas encontradas: " . implode(', ', $tables) . "</p>";
+    
+    // Verificar usuarios admin
+    if (in_array('users', $tables)) {
+        $admins = $pdo->query("SELECT id, name, email, role FROM users WHERE role = 'admin'")->fetchAll();
+        echo "<h3>Usuarios Admin:</h3>";
+        foreach ($admins as $admin) {
+            echo "<p>ID: {$admin['id']}, Email: {$admin['email']}, Nombre: {$admin['name']}</p>";
+        }
+    }
+    
+} catch (PDOException $e) {
+    echo "<p style='color:red'>❌ Error de conexión: " . $e->getMessage() . "</p>";
+}
 
-echo "<h2>📁 Files Check</h2>";
-$files_to_check = [
-    'includes/init.php',
-    'includes/Database.php', 
-    'includes/Auth.php',
+// Verificar archivos importantes
+echo "<h2>Archivos del Sistema</h2>";
+$files = [
+    'admin/calendar.php',
+    'admin/tickets.php', 
     'config/database.php',
-    'config/local.php'
+    'includes/init.php',
+    'includes/Auth.php'
 ];
 
-foreach ($files_to_check as $file) {
-    $exists = file_exists($file);
-    $readable = is_readable($file);
-    echo "<strong>{$file}:</strong> " . ($exists ? "✅ Exists" : "❌ Missing") . 
-         ($readable ? " & Readable" : " & Not Readable") . "<br>";
-}
-
-echo "<h2>🔧 Environment Variables</h2>";
-$env_vars = ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'PORT'];
-foreach ($env_vars as $var) {
-    $value = $_ENV[$var] ?? 'Not set';
-    echo "<strong>{$var}:</strong> " . ($value !== 'Not set' ? "✅ Set" : "❌ Not set") . "<br>";
-}
-
-echo "<h2>🗄️ Database Test</h2>";
-try {
-    // Intentar cargar configuración
-    if (file_exists('config/database.php')) {
-        echo "✅ Config file exists<br>";
-        $config = require 'config/database.php';
-        echo "✅ Config loaded: " . (is_array($config) ? "Array" : gettype($config)) . "<br>";
-        
-        if (is_array($config)) {
-            echo "<strong>DB Host:</strong> " . ($config['host'] ?? 'Not set') . "<br>";
-            echo "<strong>DB Name:</strong> " . ($config['dbname'] ?? 'Not set') . "<br>";
-            echo "<strong>DB User:</strong> " . ($config['username'] ?? 'Not set') . "<br>";
-            echo "<strong>DB Pass:</strong> " . (isset($config['password']) ? (empty($config['password']) ? 'Empty' : 'Set') : 'Not set') . "<br>";
-        }
+foreach ($files as $file) {
+    if (file_exists($file)) {
+        echo "<p style='color:green'>✅ $file existe</p>";
     } else {
-        echo "❌ Config file missing<br>";
+        echo "<p style='color:red'>❌ $file NO EXISTE</p>";
     }
-} catch (Exception $e) {
-    echo "❌ Error loading config: " . $e->getMessage() . "<br>";
 }
 
-echo "<h2>📋 Init Test</h2>";
-try {
-    // Intentar cargar init.php
-    require_once 'includes/init.php';
-    echo "✅ Init.php loaded successfully<br>";
-} catch (Exception $e) {
-    echo "❌ Error loading init.php: " . $e->getMessage() . "<br>";
-    echo "<strong>Stack trace:</strong><pre>" . $e->getTraceAsString() . "</pre>";
-}
+// Verificar permisos de sesión
+echo "<h2>Configuración de Sesiones</h2>";
+echo "<p>session.save_path: " . session_save_path() . "</p>";
+echo "<p>session.cookie_domain: " . ini_get('session.cookie_domain') . "</p>";
+echo "<p>session.cookie_secure: " . ini_get('session.cookie_secure') . "</p>";
 
-echo "<h2>🔗 Test Links</h2>";
-echo "<a href='/login.php'>🔗 Test Login</a><br>";
-echo "<a href='/admin/dashboard.php'>🔗 Test Admin Dashboard</a><br>";
-echo "<a href='/?debug=railway'>🔗 Debug Index</a><br>";
+// Información del servidor
+echo "<h2>Información del Servidor</h2>";
+echo "<p>PHP Version: " . PHP_VERSION . "</p>";
+echo "<p>Server: " . ($_SERVER['SERVER_SOFTWARE'] ?? 'N/A') . "</p>";
+echo "<p>Document Root: " . ($_SERVER['DOCUMENT_ROOT'] ?? 'N/A') . "</p>";
+echo "<p>HTTP_HOST: " . ($_SERVER['HTTP_HOST'] ?? 'N/A') . "</p>";
+
 ?>
