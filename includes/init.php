@@ -9,29 +9,44 @@ require_once dirname(__FILE__) . '/timezone_config.php';
 
 // Configurar sesión antes de iniciarla
 if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+    // Detectar si estamos en Railway
+    $isRailway = isset($_ENV['RAILWAY_ENVIRONMENT']);
+    
     // Configurar duración de sesión (8 horas = 28800 segundos)
     ini_set('session.gc_maxlifetime', 28800);
     ini_set('session.cookie_lifetime', 28800);
     
-    // Configurar parámetros de cookie para mayor duración
-    // En Railway necesitamos ser más específicos con el dominio
-    $isRailway = isset($_ENV['RAILWAY_ENVIRONMENT']);
-    $domain = $isRailway ? '.techonway.com' : '';
-    
-    session_set_cookie_params([
-        'lifetime' => 28800,
-        'path' => '/',
-        'domain' => $domain,
-        'secure' => $isRailway || isset($_SERVER['HTTPS']),
-        'httponly' => true,
-        'samesite' => 'Lax'
-    ]);
+    // Configuración específica para Railway
+    if ($isRailway) {
+        // En Railway, usar configuración más simple
+        session_set_cookie_params([
+            'lifetime' => 28800,
+            'path' => '/',
+            'domain' => '',  // Dejar vacío para Railway
+            'secure' => true,  // Siempre HTTPS en Railway
+            'httponly' => true,
+            'samesite' => 'None'  // Cambiar a None para Railway
+        ]);
+        
+        // Configurar nombre de sesión único
+        session_name('TECHONWAY_SESSION');
+    } else {
+        // Configuración para local
+        session_set_cookie_params([
+            'lifetime' => 28800,
+            'path' => '/',
+            'domain' => '',
+            'secure' => isset($_SERVER['HTTPS']),
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
+    }
     
     session_start();
     
-    // Debug de sesiones para Railway
-    if ($isRailway && isset($_GET['debug_session'])) {
-        error_log("Railway Session Debug - Domain: $domain, Session ID: " . session_id() . ", Data: " . json_encode($_SESSION));
+    // Debug específico para Railway
+    if ($isRailway && (isset($_GET['debug_session']) || !isset($_SESSION['user_id']))) {
+        error_log("Railway Session Debug - Session ID: " . session_id() . ", Cookie params: " . json_encode(session_get_cookie_params()) . ", Session data: " . json_encode($_SESSION ?? []));
     }
     
     // Regenerar ID de sesión cada 30 minutos para seguridad
