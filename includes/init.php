@@ -14,16 +14,25 @@ if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
     ini_set('session.cookie_lifetime', 28800);
     
     // Configurar parámetros de cookie para mayor duración
+    // En Railway necesitamos ser más específicos con el dominio
+    $isRailway = isset($_ENV['RAILWAY_ENVIRONMENT']);
+    $domain = $isRailway ? '.techonway.com' : '';
+    
     session_set_cookie_params([
         'lifetime' => 28800,
         'path' => '/',
-        'domain' => '',
-        'secure' => isset($_SERVER['HTTPS']),
+        'domain' => $domain,
+        'secure' => $isRailway || isset($_SERVER['HTTPS']),
         'httponly' => true,
         'samesite' => 'Lax'
     ]);
     
     session_start();
+    
+    // Debug de sesiones para Railway
+    if ($isRailway && isset($_GET['debug_session'])) {
+        error_log("Railway Session Debug - Domain: $domain, Session ID: " . session_id() . ", Data: " . json_encode($_SESSION));
+    }
     
     // Regenerar ID de sesión cada 30 minutos para seguridad
     if (!isset($_SESSION['last_regeneration'])) {
