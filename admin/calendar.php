@@ -145,6 +145,17 @@ table.calendar-table thead th,
     padding: 12px 8px !important;
 }
 
+/* Card headers con color #505775 */
+.card-header {
+    background-color: #505775 !important;
+    color: white !important;
+    border-bottom: 1px solid #505775 !important;
+}
+.card-header h5 {
+    color: white !important;
+    margin: 0 !important;
+}
+
 /* Estilos de las citas (mantener) */
 .appointment {
     background-color: #5B6386;
@@ -231,9 +242,12 @@ include_once '../templates/header.php';
     
     <!-- Calendar -->
     <div class="card">
-        <div class="card-body p-0">
+        <div class="card-header">
+            <h5>Calendario de Citas</h5>
+        </div>
+        <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered calendar-table mb-0">
+                <table class="table table-bordered calendar-table">
                     <thead>
                         <tr>
                             <th>Domingo</th><th>Lunes</th><th>Martes</th><th>Miércoles</th><th>Jueves</th><th>Viernes</th><th>Sábado</th>
