@@ -128,7 +128,6 @@ if (isset($_GET['msg'])) {
     $message = $_GET['msg'];
 }
 
-<?php
 // Add Leaflet CSS to header
 if (!isset($GLOBALS['extra_css'])) {
     $GLOBALS['extra_css'] = [];
