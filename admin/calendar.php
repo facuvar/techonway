@@ -112,32 +112,33 @@ if (!isset($GLOBALS['extra_css'])) {
     $GLOBALS['extra_css'] = [];
 }
 $GLOBALS['extra_css'][] = '<style>
-/* Estilos del calendario TechonWay - v1.1 */
-/* Fondo gris para toda la página */
-.main-content {
+/* Estilos del calendario TechonWay - v1.2 */
+
+/* Fondo gris para toda la página - MUY IMPORTANTE */
+body, .main-content, .container-fluid {
     background-color: #f8f9fa !important;
-    min-height: 100vh;
+    min-height: 100vh !important;
 }
 
-/* Botones de navegación del mes */
-.btn-month-nav {
-    background-color: #505775;
-    color: white;
-    padding: 0.5rem 1rem;
-    text-decoration: none;
-    border-radius: 0.375rem;
-    display: inline-flex;
-    align-items: center;
-    border: none;
-    font-weight: 500;
-    transition: all 0.2s ease;
+/* Botones de navegación del mes - ESPECÍFICOS */
+a.btn-month-nav, .btn-month-nav {
+    background-color: #505775 !important;
+    color: white !important;
+    padding: 0.5rem 1rem !important;
+    text-decoration: none !important;
+    border-radius: 0.375rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    border: none !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
 }
-.btn-month-nav:hover {
-    background-color: #3d4258;
-    color: white;
-    text-decoration: none;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+a.btn-month-nav:hover, .btn-month-nav:hover {
+    background-color: #3d4258 !important;
+    color: white !important;
+    text-decoration: none !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
 }
 
 /* Estilos de las citas */
@@ -181,15 +182,19 @@ $GLOBALS['extra_css'][] = '<style>
     border: 2px solid #ffc107;
 }
 
-/* Cabecera y pie de tabla */
-.calendar-table thead th {
+/* Cabecera y pie de tabla - MUY ESPECÍFICO */
+table.calendar-table thead th,
+.calendar-table thead th,
+.table.calendar-table thead th {
     background-color: #505775 !important;
     color: white !important;
     border: 1px solid #505775 !important;
-    font-weight: 600;
-    text-align: center;
-    padding: 12px 8px;
+    font-weight: 600 !important;
+    text-align: center !important;
+    padding: 12px 8px !important;
 }
+table.calendar-table tfoot th,
+table.calendar-table tfoot td,
 .calendar-table tfoot th,
 .calendar-table tfoot td {
     background-color: #505775 !important;
@@ -197,8 +202,9 @@ $GLOBALS['extra_css'][] = '<style>
     border: 1px solid #505775 !important;
 }
 
-/* Tabla de resumen de citas */
-.table thead th {
+/* Tabla de resumen de citas - ESPECÍFICO */
+.table thead th,
+table.table thead th {
     background-color: #505775 !important;
     color: white !important;
     border-color: #505775 !important;
