@@ -6,17 +6,32 @@ session_start();
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
     $_SESSION['user_id'] = 1;
     $_SESSION['role'] = 'admin';
-    $_SESSION['user_name'] = 'Admin Railway';
+    $_SESSION['user_name'] = 'Administrador TechonWay';
     $_SESSION['user_email'] = 'admin@techonway.com';
+    $_SESSION['user_role'] = 'admin';
 }
 
 // Cargar solo lo esencial
 require_once '../includes/Database.php';
+require_once '../includes/Auth.php';
+require_once '../includes/functions.php';
 
 // Definir constantes esenciales que normalmente están en init.php
 if (!defined('BASE_URL')) {
     define('BASE_URL', '/');
 }
+
+if (!defined('BASE_PATH')) {
+    define('BASE_PATH', dirname(__DIR__));
+}
+
+if (!defined('TEMPLATE_PATH')) {
+    define('TEMPLATE_PATH', BASE_PATH . '/templates');
+}
+
+// Initialize auth
+$auth = new Auth();
+$pageTitle = 'Gestión de Clientes';
 
 $db = Database::getInstance();
 $action = $_GET['action'] ?? 'list';
@@ -113,144 +128,18 @@ if (isset($_GET['msg'])) {
     $message = $_GET['msg'];
 }
 
+<?php
+// Add Leaflet CSS to header
+if (!isset($GLOBALS['extra_css'])) {
+    $GLOBALS['extra_css'] = [];
+}
+$GLOBALS['extra_css'][] = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />';
+
+// Include header
+include_once '../templates/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestión de Tickets para Ascensores</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
-    <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>assets/img/favicon.png">
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-</head>
-<body class="dark-mode has-sidebar">
-    <!-- Top Navbar (mobile) -->
-    <nav class="navbar top-navbar d-flex align-items-center px-3 d-md-none">
-        <div class="d-flex align-items-center gap-2">
-            <button class="btn btn-outline-light d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
-                <i class="bi bi-list" style="font-size:1.25rem;"></i>
-            </button>
-            <a class="navbar-brand mb-0 h1 d-flex align-items-center" href="<?php echo BASE_URL; ?>dashboard.php">
-                <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="Logo" style="height:28px;width:auto;"/>
-            </a>
-        </div>
-    </nav>
-    
-    <!-- Offcanvas Sidebar for mobile -->
-    <div class="offcanvas offcanvas-start mobile-sidebar" tabindex="-1" id="mobileSidebar">
-        <div class="offcanvas-header border-bottom">
-            <h5 class="offcanvas-title">Menú</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
-        </div>
-        <div class="offcanvas-body p-0">
-            <div class="sidebar-content">
-                <!-- Mobile sidebar content -->
-                <div class="text-center p-3">
-                    <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="TechonWay" style="height: 40px;">
-                </div>
-                <div class="text-center p-3 border-bottom">
-                    <i class="bi bi-person-circle" style="font-size:2rem;"></i>
-                    <div class="mt-2"><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></div>
-                    <small class="text-light">Administrador</small>
-                </div>
-                <nav class="nav flex-column">
-                <a class="nav-link" href="/admin/dashboard.php">
-                        <i class="bi bi-speedometer2 me-2"></i>Dashboard
-                    </a>
-                    <a class="nav-link active" href="/admin/clients.php">
-                        <i class="bi bi-building me-2"></i>Clientes
-                    </a>
-                <a class="nav-link" href="/admin/technicians.php">
-                        <i class="bi bi-person-gear me-2"></i>Técnicos
-                    </a>
-                    <a class="nav-link" href="/admin/admins.php">
-                        <i class="bi bi-shield-lock me-2"></i>Administradores
-                    </a>
-                    <a class="nav-link" href="/admin/tickets.php">
-                        <i class="bi bi-ticket-perforated me-2"></i>Tickets
-                    </a>
-                    <a class="nav-link" href="/admin/calendar.php">
-                        <i class="bi bi-calendar-event me-2"></i>Calendario
-                    </a>
-                    <a class="nav-link" href="/admin/service_requests.php">
-                        <i class="bi bi-journal-text me-2"></i>Solicitudes
-                    </a>
-                <a class="nav-link" href="/admin/visits.php">
-                        <i class="bi bi-clipboard-check me-2"></i>Visitas
-                    </a>
-                    <a class="nav-link" href="/admin/import_clients.php">
-                        <i class="bi bi-file-earmark-excel me-2"></i>Importar
-                    </a>
-                    <a class="nav-link" href="/profile.php">
-                        <i class="bi bi-person me-2"></i>Perfil
-                    </a>
-                    <hr>
-                    <a class="nav-link" href="/logout.php">
-                        <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
-                    </a>
-                </nav>
-            </div>
-        </div>
-    </div>
 
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 px-0 sidebar d-none d-md-block">
-                <div class="sidebar-brand text-center p-3">
-                    <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="TechonWay" style="height: 50px;">
-                </div>
-                <div class="text-center p-3 border-bottom">
-                    <i class="bi bi-person-circle" style="font-size:2.5rem;"></i>
-                    <div class="mt-2"><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></div>
-                    <small class="text-light">Administrador</small>
-                </div>
-                <nav class="nav flex-column">
-                    <a class="nav-link" href="/admin/dashboard.php">
-                        <i class="bi bi-speedometer2 me-2"></i>Dashboard
-                    </a>
-                    <a class="nav-link active" href="/admin/clients.php">
-                        <i class="bi bi-building me-2"></i>Clientes
-                    </a>
-                    <a class="nav-link" href="/admin/technicians.php">
-                        <i class="bi bi-person-gear me-2"></i>Técnicos
-                    </a>
-                    <a class="nav-link" href="/admin/admins.php">
-                        <i class="bi bi-shield-lock me-2"></i>Administradores
-                    </a>
-                    <a class="nav-link" href="/admin/tickets.php">
-                        <i class="bi bi-ticket-perforated me-2"></i>Tickets
-                    </a>
-                    <a class="nav-link" href="/admin/calendar.php">
-                        <i class="bi bi-calendar-event me-2"></i>Calendario
-                    </a>
-                    <a class="nav-link" href="/admin/service_requests.php">
-                        <i class="bi bi-journal-text me-2"></i>Solicitudes
-                    </a>
-                    <a class="nav-link" href="/admin/visits.php">
-                        <i class="bi bi-clipboard-check me-2"></i>Visitas
-                    </a>
-                    <a class="nav-link" href="/admin/import_clients.php">
-                        <i class="bi bi-file-earmark-excel me-2"></i>Importar
-                    </a>
-                    <a class="nav-link" href="/profile.php">
-                        <i class="bi bi-person me-2"></i>Perfil
-                    </a>
-                    <hr>
-                    <a class="nav-link" href="/logout.php">
-                        <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
-                    </a>
-                </nav>
-            </div>
-            <!-- Main content -->
-            <div class="col-12 col-md-9 col-lg-10 ms-auto main-content">
-
-                <!-- Clients Content -->
-                <div class="container-fluid py-4">
+<div class="container-fluid py-4">
             <?php if ($message): ?>
             <div class="alert alert-success alert-dismissible fade show">
                 <?php echo htmlspecialchars($message); ?>
@@ -540,60 +429,59 @@ if (isset($_GET['msg'])) {
                 </div>
             </div>
             <?php endif; ?>
-                </div>
+</div>
+
+<!-- Modal de confirmación para eliminar -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                ¿Está seguro que desea eliminar el cliente "<span id="clientName"></span>"?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" style="display: inline;">
+                    <input type="hidden" name="client_id" id="deleteClientId">
+                    <button type="submit" name="delete_client" class="btn btn-danger">Eliminar</button>
+                </form>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Modal de confirmación para eliminar -->
-    <div class="modal fade" id="deleteModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirmar Eliminación</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    ¿Está seguro que desea eliminar el cliente "<span id="clientName"></span>"?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <form method="POST" style="display: inline;">
-                        <input type="hidden" name="client_id" id="deleteClientId">
-                        <button type="submit" name="delete_client" class="btn btn-danger">Eliminar</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+<?php
+// Add extra JS after the template footer
+if (!isset($GLOBALS['extra_js'])) {
+    $GLOBALS['extra_js'] = [];
+}
+$GLOBALS['extra_js'][] = '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>';
+$GLOBALS['extra_js'][] = '<script>
+function confirmDelete(clientId, clientName) {
+    document.getElementById("clientName").textContent = clientName;
+    document.getElementById("deleteClientId").value = clientId;
+    new bootstrap.Modal(document.getElementById("deleteModal")).show();
+}
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+// Inicializar mapa si existe
+' . ($action === 'view' && isset($client) && $client['latitude'] && $client['longitude'] ? 
+'document.addEventListener("DOMContentLoaded", function() {
+    var map = L.map("map").setView([' . $client['latitude'] . ', ' . $client['longitude'] . '], 15);
     
-    <script>
-    function confirmDelete(clientId, clientName) {
-        document.getElementById('clientName').textContent = clientName;
-        document.getElementById('deleteClientId').value = clientId;
-        new bootstrap.Modal(document.getElementById('deleteModal')).show();
-    }
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap contributors"
+    }).addTo(map);
     
-    // Inicializar mapa si existe
-    <?php if ($action === 'view' && isset($client) && $client['latitude'] && $client['longitude']): ?>
-    document.addEventListener('DOMContentLoaded', function() {
-        var map = L.map('map').setView([<?php echo $client['latitude']; ?>, <?php echo $client['longitude']; ?>], 15);
-        
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-        
-        L.marker([<?php echo $client['latitude']; ?>, <?php echo $client['longitude']; ?>])
-            .addTo(map)
-            .bindPopup('<strong><?php echo htmlspecialchars($client['name']); ?></strong><br><?php echo htmlspecialchars($client['address'] ?? ''); ?>')
-            .openPopup();
-    });
-    <?php endif; ?>
-    </script>
-</body>
-</html>
+    L.marker([' . $client['latitude'] . ', ' . $client['longitude'] . '])
+        .addTo(map)
+        .bindPopup("<strong>' . htmlspecialchars($client['name']) . '</strong><br>' . htmlspecialchars($client['address'] ?? '') . '")
+        .openPopup();
+});' : '') . '
+</script>';
+
+// Include footer
+include_once '../templates/footer.php';
+?>
