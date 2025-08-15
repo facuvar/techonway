@@ -6,9 +6,13 @@
 // Manejo de sesiones simplificado para Railway
 session_start();
 
-// Si no hay sesión de admin, redirigir al login que funciona
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header('Location: /admin/force_login_and_calendar.php');
+// Verificar sesión de manera segura
+$user_id = $_SESSION['user_id'] ?? null;
+$user_role = $_SESSION['role'] ?? null;
+
+// Si no hay sesión válida, redirigir al login
+if (!$user_id || $user_role !== 'admin') {
+    header('Location: /admin/force_login_and_calendar.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
     exit();
 }
 
@@ -117,42 +121,13 @@ if (isset($_GET['msg'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tickets - TechonWay</title>
+    <title>Sistema de Gestión de Tickets para Ascensores</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
+    <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>assets/img/favicon.png">
     
     <style>
-    /* Estilos del panel admin */
-    .sidebar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100vh;
-        width: 250px;
-        background: linear-gradient(180deg, #2D3142 0%, #3A3F58 100%);
-        color: white;
-        z-index: 1000;
-        overflow-y: auto;
-    }
-    .main-content {
-        margin-left: 250px;
-        min-height: 100vh;
-        background: #f8f9fa;
-    }
-    .sidebar .nav-link {
-        color: #bbb;
-        padding: 12px 20px;
-        text-decoration: none;
-    }
-    .sidebar .nav-link:hover {
-        background: rgba(91, 99, 134, 0.3);
-        color: white;
-    }
-    .sidebar .nav-link.active {
-        background: #5B6386;
-        color: white;
-    }
     .form-control[type="date"], .form-control[type="time"] {
         background-color: #2D2D2D;
         color: white;
@@ -163,84 +138,165 @@ if (isset($_GET['msg'])) {
         filter: invert(1);
         cursor: pointer;
     }
+    .form-control[type="date"]::after {
+        width: 0px;
+    }
+    .form-control[type="time"]::after {
+        width: 0px;
+    }
     </style>
 </head>
-<body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="p-3 text-center border-bottom">
-            <img src="/assets/img/logo.png" alt="Logo" style="max-height: 50px;">
-            <h5 class="mt-2 mb-0">TechonWay</h5>
+<body class="dark-mode has-sidebar">
+    <!-- Top Navbar (mobile) -->
+    <nav class="navbar top-navbar d-flex align-items-center px-3 d-md-none">
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-outline-light d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
+                <i class="bi bi-list" style="font-size:1.25rem;"></i>
+            </button>
+            <a class="navbar-brand mb-0 h1 d-flex align-items-center" href="<?php echo BASE_URL; ?>dashboard.php">
+                <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="Logo" style="height:28px;width:auto;"/>
+            </a>
         </div>
-        <div class="p-3 text-center border-bottom">
-            <i class="bi bi-person-circle" style="font-size:2.5rem;"></i>
-            <div class="mt-2"><?php echo $_SESSION['user_name']; ?></div>
-            <small class="text-light">Administrador</small>
+    </nav>
+    
+    <!-- Offcanvas Sidebar for mobile -->
+    <div class="offcanvas offcanvas-start mobile-sidebar" tabindex="-1" id="mobileSidebar">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title">Menú</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
         </div>
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link" href="/admin/dashboard.php">
-                    <i class="bi bi-speedometer2"></i> Dashboard
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/admin/clients.php">
-                    <i class="bi bi-building"></i> Clientes
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/admin/technicians.php">
-                    <i class="bi bi-person-gear"></i> Técnicos
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link active" href="/admin/tickets.php">
-                    <i class="bi bi-ticket-perforated"></i> Tickets
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/admin/calendar.php">
-                    <i class="bi bi-calendar-event"></i> Calendario
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/admin/visits.php">
-                    <i class="bi bi-clipboard-check"></i> Visitas
-                </a>
-            </li>
-        </ul>
+        <div class="offcanvas-body p-0">
+            <div class="sidebar-content">
+                <!-- Mobile sidebar content -->
+                <div class="text-center p-3">
+                    <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="TechonWay" style="height: 40px;">
+                </div>
+                <div class="text-center p-3 border-bottom">
+                    <i class="bi bi-person-circle" style="font-size:2rem;"></i>
+                    <div class="mt-2"><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></div>
+                    <small class="text-light">Administrador</small>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="/admin/dashboard.php">
+                        <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                    </a>
+                    <a class="nav-link" href="/admin/clients.php">
+                        <i class="bi bi-building me-2"></i>Clientes
+                    </a>
+                    <a class="nav-link" href="/admin/technicians.php">
+                        <i class="bi bi-person-gear me-2"></i>Técnicos
+                    </a>
+                    <a class="nav-link" href="/admin/admins.php">
+                        <i class="bi bi-shield-lock me-2"></i>Administradores
+                    </a>
+                    <a class="nav-link active" href="/admin/tickets.php">
+                        <i class="bi bi-ticket-perforated me-2"></i>Tickets
+                    </a>
+                    <a class="nav-link" href="/admin/calendar.php">
+                        <i class="bi bi-calendar-event me-2"></i>Calendario
+                    </a>
+                    <a class="nav-link" href="/admin/service_requests.php">
+                        <i class="bi bi-journal-text me-2"></i>Solicitudes
+                    </a>
+                    <a class="nav-link" href="/admin/visits.php">
+                        <i class="bi bi-clipboard-check me-2"></i>Visitas
+                    </a>
+                    <a class="nav-link" href="/admin/import_clients.php">
+                        <i class="bi bi-file-earmark-excel me-2"></i>Importar
+                    </a>
+                    <a class="nav-link" href="/profile.php">
+                        <i class="bi bi-person me-2"></i>Perfil
+                    </a>
+                    <hr>
+                    <a class="nav-link" href="/logout.php">
+                        <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                    </a>
+                </nav>
+            </div>
+        </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="container-fluid py-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1>🎫 Gestión de Tickets</h1>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 px-0 sidebar d-none d-md-block">
+                <div class="sidebar-brand text-center p-3">
+                    <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="TechonWay" style="height: 50px;">
+                </div>
+                <div class="text-center p-3 border-bottom">
+                    <i class="bi bi-person-circle" style="font-size:2.5rem;"></i>
+                    <div class="mt-2"><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></div>
+                    <small class="text-light">Administrador</small>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="/admin/dashboard.php">
+                        <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                    </a>
+                    <a class="nav-link" href="/admin/clients.php">
+                        <i class="bi bi-building me-2"></i>Clientes
+                    </a>
+                    <a class="nav-link" href="/admin/technicians.php">
+                        <i class="bi bi-person-gear me-2"></i>Técnicos
+                    </a>
+                    <a class="nav-link" href="/admin/admins.php">
+                        <i class="bi bi-shield-lock me-2"></i>Administradores
+                    </a>
+                    <a class="nav-link active" href="/admin/tickets.php">
+                        <i class="bi bi-ticket-perforated me-2"></i>Tickets
+                    </a>
+                    <a class="nav-link" href="/admin/calendar.php">
+                        <i class="bi bi-calendar-event me-2"></i>Calendario
+                    </a>
+                    <a class="nav-link" href="/admin/service_requests.php">
+                        <i class="bi bi-journal-text me-2"></i>Solicitudes
+                    </a>
+                    <a class="nav-link" href="/admin/visits.php">
+                        <i class="bi bi-clipboard-check me-2"></i>Visitas
+                    </a>
+                    <a class="nav-link" href="/admin/import_clients.php">
+                        <i class="bi bi-file-earmark-excel me-2"></i>Importar
+                    </a>
+                    <a class="nav-link" href="/profile.php">
+                        <i class="bi bi-person me-2"></i>Perfil
+                    </a>
+                    <hr>
+                    <a class="nav-link" href="/logout.php">
+                        <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                    </a>
+                </nav>
+            </div>
+            <!-- Main content -->
+            <div class="col-12 col-md-9 col-lg-10 ms-auto main-content">
+                
+                <!-- Tickets Content -->
+                <div class="container-fluid py-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h1>Gestión de Tickets</h1>
                 <?php if ($action === 'list'): ?>
                 <a href="?action=create" class="btn btn-success">
                     <i class="bi bi-plus"></i> Crear Ticket
                 </a>
-                <?php endif; ?>
-            </div>
+                    <?php endif; ?>
+                    </div>
+                    
+                    <!-- Mensajes -->
+                    <?php if ($message): ?>
+                        <div class="alert alert-success alert-dismissible fade show">
+                            <?php echo htmlspecialchars($message); ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    <?php endif; ?>
 
-            <!-- Mensajes -->
-            <?php if ($message): ?>
-            <div class="alert alert-success alert-dismissible fade show">
-                <?php echo htmlspecialchars($message); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            <?php endif; ?>
+                    <?php if ($error): ?>
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <?php echo htmlspecialchars($error); ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    <?php endif; ?>
 
-            <?php if ($error): ?>
-            <div class="alert alert-danger alert-dismissible fade show">
-                <?php echo htmlspecialchars($error); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            <?php endif; ?>
-
-            <?php if ($action === 'list'): ?>
-            <!-- Lista de Tickets -->
-            <div class="card">
+                    <?php if ($action === 'list'): ?>
+                        <!-- Lista de Tickets -->
+                        <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0">Lista de Tickets</h5>
                 </div>
@@ -400,10 +456,13 @@ if (isset($_GET['msg'])) {
                     </form>
                 </div>
             </div>
-            <?php endif; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
         </div>
     </div>
-
+    
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
