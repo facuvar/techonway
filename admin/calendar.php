@@ -137,11 +137,16 @@ try {
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
             </div>
             <div class="offcanvas-body p-0">
-                <div class="sidebar-content">
-                    <!-- Mobile sidebar content -->
-                    <div class="text-center p-3">
-                        <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="TechonWay" style="height: 40px;">
-                    </div>
+                            <div class="sidebar-content">
+                <!-- Mobile sidebar content -->
+                <div class="text-center p-3">
+                    <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="TechonWay" style="height: 40px;">
+                </div>
+                <div class="text-center p-3 border-bottom">
+                    <i class="bi bi-person-circle" style="font-size:2rem;"></i>
+                    <div class="mt-2"><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></div>
+                    <small class="text-light">Administrador</small>
+                </div>
                     <nav class="nav flex-column">
                         <a class="nav-link" href="/admin/dashboard.php">
                             <i class="bi bi-speedometer2 me-2"></i>Dashboard
@@ -176,10 +181,15 @@ try {
         <div class="container-fluid">
             <div class="row">
                 <!-- Sidebar -->
-                <div class="col-md-3 col-lg-2 px-0 sidebar d-none d-md-block">
-                    <div class="sidebar-brand text-center p-3">
-                        <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="TechonWay" style="height: 50px;">
-                    </div>
+                            <div class="col-md-3 col-lg-2 px-0 sidebar d-none d-md-block">
+                <div class="sidebar-brand text-center p-3">
+                    <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="TechonWay" style="height: 50px;">
+                </div>
+                <div class="text-center p-3 border-bottom">
+                    <i class="bi bi-person-circle" style="font-size:2.5rem;"></i>
+                    <div class="mt-2"><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></div>
+                    <small class="text-light">Administrador</small>
+                </div>
                     <nav class="nav flex-column">
                         <a class="nav-link" href="/admin/dashboard.php">
                             <i class="bi bi-speedometer2 me-2"></i>Dashboard
@@ -213,7 +223,7 @@ try {
                     
                     <!-- Calendar Content -->
                     <div class="container-fluid py-4">
-                        <h1 class="mb-4">📅 Calendario de Citas - <?php echo date('F Y', mktime(0, 0, 0, $month, 1, $year)); ?></h1>
+                        <h1 class="mb-4">Calendario de Citas - <?php echo date('F Y', mktime(0, 0, 0, $month, 1, $year)); ?></h1>
                         
                         <!-- Navigation -->
                         <div class="mb-3 d-flex justify-content-between align-items-center">

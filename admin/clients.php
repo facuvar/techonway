@@ -144,6 +144,11 @@ if (isset($_GET['msg'])) {
                 <div class="text-center p-3">
                     <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="TechonWay" style="height: 40px;">
                 </div>
+                <div class="text-center p-3 border-bottom">
+                    <i class="bi bi-person-circle" style="font-size:2rem;"></i>
+                    <div class="mt-2"><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></div>
+                    <small class="text-light">Administrador</small>
+                </div>
                 <nav class="nav flex-column">
                     <a class="nav-link" href="/admin/dashboard.php">
                         <i class="bi bi-speedometer2 me-2"></i>Dashboard
@@ -181,6 +186,11 @@ if (isset($_GET['msg'])) {
             <div class="col-md-3 col-lg-2 px-0 sidebar d-none d-md-block">
                 <div class="sidebar-brand text-center p-3">
                     <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="TechonWay" style="height: 50px;">
+                </div>
+                <div class="text-center p-3 border-bottom">
+                    <i class="bi bi-person-circle" style="font-size:2.5rem;"></i>
+                    <div class="mt-2"><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></div>
+                    <small class="text-light">Administrador</small>
                 </div>
                 <nav class="nav flex-column">
                     <a class="nav-link" href="/admin/dashboard.php">
@@ -230,12 +240,12 @@ if (isset($_GET['msg'])) {
                     <?php endif; ?>
                     
                     <?php if ($action === 'list'): ?>
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h1>👥 Gestión de Clientes</h1>
-                            <a href="?action=create" class="btn btn-success">
-                                <i class="bi bi-plus"></i> Crear Cliente
-                            </a>
-                        </div>
+                                                 <div class="d-flex justify-content-between align-items-center mb-4">
+                             <h1>Gestión de Clientes</h1>
+                             <a href="?action=create" class="btn btn-success">
+                                 <i class="bi bi-plus"></i> Crear Cliente
+                             </a>
+                         </div>
                         
                         <div class="card">
                             <div class="card-body">
@@ -290,12 +300,12 @@ if (isset($_GET['msg'])) {
                         </div>
                         
                     <?php elseif ($action === 'create' || $action === 'edit'): ?>
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h1><?php echo $action === 'edit' ? '✏️ Editar Cliente' : '➕ Crear Cliente'; ?></h1>
-                            <a href="?action=list" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Volver
-                            </a>
-                        </div>
+                                                 <div class="d-flex justify-content-between align-items-center mb-4">
+                             <h1><?php echo $action === 'edit' ? 'Editar Cliente' : 'Crear Cliente'; ?></h1>
+                             <a href="?action=list" class="btn btn-secondary">
+                                 <i class="bi bi-arrow-left"></i> Volver
+                             </a>
+                         </div>
                         
                         <div class="card">
                             <div class="card-body">
@@ -314,7 +324,7 @@ if (isset($_GET['msg'])) {
                                         <div class="col-md-6 mb-3">
                                             <label for="email" class="form-label">Email</label>
                                             <input type="email" class="form-control" id="email" name="email" 
-                                                   value="<?php echo $action === 'edit' ? htmlspecialchars($client['email'] ?? '') : ''; ?>">
+                                                   value="<?php echo $action === 'edit' ? htmlspecialchars(isset($client['email']) ? $client['email'] : '') : ''; ?>">
                                         </div>
                                     </div>
                                     
@@ -322,26 +332,26 @@ if (isset($_GET['msg'])) {
                                         <div class="col-md-6 mb-3">
                                             <label for="phone" class="form-label">Teléfono</label>
                                             <input type="tel" class="form-control" id="phone" name="phone" 
-                                                   value="<?php echo $action === 'edit' ? htmlspecialchars($client['phone'] ?? '') : ''; ?>">
+                                                   value="<?php echo $action === 'edit' ? htmlspecialchars(isset($client['phone']) ? $client['phone'] : '') : ''; ?>">
                                         </div>
                                         
                                         <div class="col-md-6 mb-3">
                                             <label for="business_name" class="form-label">Nombre de la Empresa</label>
                                             <input type="text" class="form-control" id="business_name" name="business_name" 
-                                                   value="<?php echo $action === 'edit' ? htmlspecialchars($client['business_name'] ?? '') : ''; ?>">
+                                                   value="<?php echo $action === 'edit' ? htmlspecialchars(isset($client['business_name']) ? $client['business_name'] : '') : ''; ?>">
                                         </div>
                                     </div>
                                     
                                     <div class="row">
                                         <div class="col-md-8 mb-3">
                                             <label for="address" class="form-label">Dirección</label>
-                                            <textarea class="form-control" id="address" name="address" rows="2"><?php echo $action === 'edit' ? htmlspecialchars($client['address'] ?? '') : ''; ?></textarea>
+                                            <textarea class="form-control" id="address" name="address" rows="2"><?php echo $action === 'edit' ? htmlspecialchars(isset($client['address']) ? $client['address'] : '') : ''; ?></textarea>
                                         </div>
                                         
                                         <div class="col-md-4 mb-3">
                                             <label for="zone" class="form-label">Zona</label>
                                             <input type="text" class="form-control" id="zone" name="zone" 
-                                                   value="<?php echo $action === 'edit' ? htmlspecialchars($client['zone'] ?? '') : ''; ?>">
+                                                   value="<?php echo $action === 'edit' ? htmlspecialchars(isset($client['zone']) ? $client['zone'] : '') : ''; ?>">
                                         </div>
                                     </div>
                                     
