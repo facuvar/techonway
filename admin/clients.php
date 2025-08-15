@@ -33,6 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $business_name = trim($_POST['business_name'] ?? '');
             $address = trim($_POST['address'] ?? '');
             $zone = trim($_POST['zone'] ?? '');
+            $latitude = !empty($_POST['latitude']) ? floatval($_POST['latitude']) : null;
+            $longitude = !empty($_POST['longitude']) ? floatval($_POST['longitude']) : null;
             
             if (empty($name)) {
                 $error = 'El nombre es requerido';
@@ -56,13 +58,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (isset($_POST['client_id']) && !empty($_POST['client_id'])) {
                         // Editar cliente existente
                         $client_id = $_POST['client_id'];
-                        $db->query("UPDATE clients SET name = ?, email = ?, phone = ?, business_name = ?, address = ?, zone = ? WHERE id = ?", 
-                                   [$name, $email, $phone, $business_name, $address, $zone, $client_id]);
+                        $db->query("UPDATE clients SET name = ?, email = ?, phone = ?, business_name = ?, address = ?, zone = ?, latitude = ?, longitude = ? WHERE id = ?", 
+                                   [$name, $email, $phone, $business_name, $address, $zone, $latitude, $longitude, $client_id]);
                         $message = 'Cliente actualizado correctamente';
                     } else {
                         // Crear nuevo cliente
-                        $db->query("INSERT INTO clients (name, email, phone, business_name, address, zone) VALUES (?, ?, ?, ?, ?, ?)", 
-                                   [$name, $email, $phone, $business_name, $address, $zone]);
+                        $db->query("INSERT INTO clients (name, email, phone, business_name, address, zone, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", 
+                                   [$name, $email, $phone, $business_name, $address, $zone, $latitude, $longitude]);
                         $message = 'Cliente creado correctamente';
                     }
                     $action = 'list';
@@ -90,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Obtener datos según la acción
 try {
-    if ($action === 'edit') {
+    if ($action === 'edit' || $action === 'view') {
         $client = $db->selectOne("SELECT * FROM clients WHERE id = ?", [$_GET['id']]);
         if (!$client) {
             $error = 'Cliente no encontrado';
@@ -122,6 +124,8 @@ if (isset($_GET['msg'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
     <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>assets/img/favicon.png">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body class="dark-mode has-sidebar">
     <!-- Top Navbar (mobile) -->
@@ -305,6 +309,9 @@ if (isset($_GET['msg'])) {
                                                 <td><?php echo htmlspecialchars((isset($c['zone']) ? $c['zone'] : null) ?: '-'); ?></td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
+                                            <a href="?action=view&id=<?php echo $c['id']; ?>" class="btn btn-outline-info">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
                                             <a href="?action=edit&id=<?php echo $c['id']; ?>" class="btn btn-outline-primary">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
@@ -321,7 +328,133 @@ if (isset($_GET['msg'])) {
                 </div>
             </div>
 
-                    <?php elseif ($action === 'create' || $action === 'edit'): ?>
+                    <?php elseif ($action === 'view'): ?>
+            <!-- Vista detallada del cliente -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Detalles del Cliente</h1>
+                <div>
+                    <a href="?action=edit&id=<?php echo $client['id']; ?>" class="btn btn-primary">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    <a href="?action=list" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Información Personal</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Nombre:</strong></td>
+                                    <td><?php echo htmlspecialchars($client['name']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Email:</strong></td>
+                                    <td><?php echo htmlspecialchars($client['email'] ?? 'Sin email'); ?></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Teléfono:</strong></td>
+                                    <td><?php echo htmlspecialchars($client['phone'] ?? 'Sin teléfono'); ?></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Empresa:</strong></td>
+                                    <td><?php echo htmlspecialchars($client['business_name'] ?? 'Sin empresa'); ?></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Ubicación</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Dirección:</strong></td>
+                                    <td><?php echo htmlspecialchars($client['address'] ?? 'Sin dirección'); ?></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Zona:</strong></td>
+                                    <td><?php echo htmlspecialchars($client['zone'] ?? 'Sin zona'); ?></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Latitud:</strong></td>
+                                    <td><?php echo $client['latitude'] ? number_format($client['latitude'], 6) : 'Sin coordenada'; ?></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Longitud:</strong></td>
+                                    <td><?php echo $client['longitude'] ? number_format($client['longitude'], 6) : 'Sin coordenada'; ?></td>
+                                </tr>
+                            </table>
+                            
+                            <?php if ($client['latitude'] && $client['longitude']): ?>
+                            <div class="mt-3">
+                                <h6>Mapa</h6>
+                                <div id="map" style="height: 200px; border-radius: 8px;"></div>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <h5>Historial de Tickets</h5>
+                            <?php
+                            // Obtener tickets del cliente
+                            $tickets = $db->select("
+                                SELECT t.*, 
+                                       CONCAT(u.name, ' ', COALESCE(u.last_name, '')) as technician_name
+                                FROM tickets t
+                                LEFT JOIN users u ON t.assigned_to = u.id
+                                WHERE t.client_id = ?
+                                ORDER BY t.created_at DESC
+                                LIMIT 10
+                            ", [$client['id']]);
+                            ?>
+                            
+                            <?php if (!empty($tickets)): ?>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Descripción</th>
+                                            <th>Técnico</th>
+                                            <th>Estado</th>
+                                            <th>Fecha</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($tickets as $ticket): ?>
+                                        <tr>
+                                            <td><?php echo $ticket['id']; ?></td>
+                                            <td><?php echo htmlspecialchars(substr($ticket['description'], 0, 50)); ?><?php echo strlen($ticket['description']) > 50 ? '...' : ''; ?></td>
+                                            <td><?php echo htmlspecialchars($ticket['technician_name'] ?: 'Sin asignar'); ?></td>
+                                            <td>
+                                                <span class="badge bg-<?php 
+                                                    echo $ticket['status'] === 'completed' ? 'success' : 
+                                                        ($ticket['status'] === 'in_progress' ? 'warning' : 'secondary'); 
+                                                ?>">
+                                                    <?php echo ucfirst($ticket['status']); ?>
+                                                </span>
+                                            </td>
+                                            <td><?php echo date('d/m/Y', strtotime($ticket['created_at'])); ?></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <?php else: ?>
+                            <p class="text-muted">No hay tickets registrados para este cliente.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <?php elseif ($action === 'create' || $action === 'edit'): ?>
                                                  <div class="d-flex justify-content-between align-items-center mb-4">
                              <h1><?php echo $action === 'edit' ? 'Editar Cliente' : 'Crear Cliente'; ?></h1>
                              <a href="?action=list" class="btn btn-secondary">
@@ -377,6 +510,24 @@ if (isset($_GET['msg'])) {
                             </div>
                         </div>
 
+                        <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="latitude" class="form-label">Latitud</label>
+                                            <input type="number" step="any" class="form-control" id="latitude" name="latitude" 
+                                                   value="<?php echo $action === 'edit' ? htmlspecialchars(isset($client['latitude']) ? $client['latitude'] : '') : ''; ?>"
+                                                   placeholder="Ej: -34.6118">
+                                            <small class="form-text text-muted">Coordenada para el mapa (opcional)</small>
+                                </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <label for="longitude" class="form-label">Longitud</label>
+                                            <input type="number" step="any" class="form-control" id="longitude" name="longitude" 
+                                                   value="<?php echo $action === 'edit' ? htmlspecialchars(isset($client['longitude']) ? $client['longitude'] : '') : ''; ?>"
+                                                   placeholder="Ej: -58.3960">
+                                            <small class="form-text text-muted">Coordenada para el mapa (opcional)</small>
+                            </div>
+                        </div>
+
                         <div class="d-flex gap-2">
                                         <button type="submit" name="save_client" class="btn btn-primary">
                                             <i class="bi bi-check"></i> Guardar
@@ -418,6 +569,8 @@ if (isset($_GET['msg'])) {
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <script>
     function confirmDelete(clientId, clientName) {
@@ -425,6 +578,22 @@ if (isset($_GET['msg'])) {
         document.getElementById('deleteClientId').value = clientId;
         new bootstrap.Modal(document.getElementById('deleteModal')).show();
     }
+    
+    // Inicializar mapa si existe
+    <?php if ($action === 'view' && isset($client) && $client['latitude'] && $client['longitude']): ?>
+    document.addEventListener('DOMContentLoaded', function() {
+        var map = L.map('map').setView([<?php echo $client['latitude']; ?>, <?php echo $client['longitude']; ?>], 15);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        L.marker([<?php echo $client['latitude']; ?>, <?php echo $client['longitude']; ?>])
+            .addTo(map)
+            .bindPopup('<strong><?php echo htmlspecialchars($client['name']); ?></strong><br><?php echo htmlspecialchars($client['address'] ?? ''); ?>')
+            .openPopup();
+    });
+    <?php endif; ?>
     </script>
 </body>
 </html>
