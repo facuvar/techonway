@@ -99,14 +99,31 @@ try {
     
     echo "<h2>📋 Instrucciones:</h2>";
     echo "<ol>";
-    echo "<li>🔗 <strong>Descarga el archivo:</strong> <a href='$filename' download style='color: #007bff;'>$filename</a></li>";
-    echo "<li>📤 Súbelo al directorio raíz de Railway (donde está este script)</li>";
-    echo "<li>🔧 Ejecuta: <strong>https://demo.techonway.com/import_clients_from_json.php</strong></li>";
     echo "</ol>";
     
-    echo "<div style='margin: 20px 0; padding: 15px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 5px;'>";
-    echo "<h3 style='color: #155724; margin-top: 0;'>🎯 Próximo paso</h3>";
-    echo "<p style='color: #155724; margin-bottom: 0;'>Descarga el archivo <strong>$filename</strong> y súbelo a Railway, luego ejecuta el importador.</p>";
+    echo "<h2>📋 Datos JSON para Railway</h2>";
+    echo "<p>Como Railway no permite subir archivos, copia estos datos:</p>";
+    
+    echo "<div style='margin: 20px 0; padding: 15px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px;'>";
+    echo "<h3>📋 Pasos para importar en Railway:</h3>";
+    echo "<ol>";
+    echo "<li>Ve a: <strong>https://demo.techonway.com/create_clients_json_railway.php</strong></li>";
+    echo "<li>Edita el archivo y pega los datos JSON de abajo</li>";
+    echo "<li>Ejecuta el script para crear el archivo JSON</li>";
+    echo "<li>Ejecuta el importador</li>";
+    echo "</ol>";
+    echo "</div>";
+    
+    echo "<div style='margin: 20px 0; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;'>";
+    echo "<h3>📝 Datos JSON para copiar:</h3>";
+    echo "<textarea style='width: 100%; height: 200px; font-family: monospace; font-size: 11px; padding: 10px;' readonly>";
+    echo htmlspecialchars($jsonData);
+    echo "</textarea>";
+    echo "<p><small>Copia todo el contenido del textarea de arriba</small></p>";
+    echo "</div>";
+    
+    echo "<div style='margin: 20px 0;'>";
+    echo "<p><a href='$filename' download style='padding: 10px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;'>💾 Descargar JSON (backup)</a></p>";
     echo "</div>";
     
 } catch (Exception $e) {
