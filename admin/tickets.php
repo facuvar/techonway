@@ -74,6 +74,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit();
             }
         }
+        
+        if (isset($_POST['delete_ticket'])) {
+            $ticket_id = $_POST['ticket_id'];
+            // Verificar si el ticket existe
+            $ticket = $db->selectOne("SELECT id, client_id FROM tickets WHERE id = ?", [$ticket_id]);
+            if ($ticket) {
+                // Eliminar el ticket
+                $db->query("DELETE FROM tickets WHERE id = ?", [$ticket_id]);
+                $message = 'Ticket eliminado correctamente';
+            } else {
+                $error = 'Ticket no encontrado';
+            }
+            $action = 'list';
+        }
+        
     } catch (Exception $e) {
         $error = 'Error al guardar ticket: ' . $e->getMessage();
     }
@@ -347,9 +362,14 @@ if (isset($_GET['msg'])) {
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <a href="?action=edit&id=<?php echo $t['id']; ?>" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="?action=edit&id=<?php echo $t['id']; ?>" class="btn btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-danger" onclick="confirmDeleteTicket(<?php echo $t['id']; ?>, '<?php echo htmlspecialchars($t['client_name']); ?>')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
@@ -460,7 +480,38 @@ if (isset($_GET['msg'])) {
         </div>
     </div>
     
+    <!-- Modal de confirmación para eliminar ticket -->
+    <div class="modal fade" id="deleteTicketModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    ¿Está seguro que desea eliminar el ticket para el cliente "<span id="ticketClientName"></span>"?
+                    <br><small class="text-danger">Esta acción no se puede deshacer.</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form method="POST" style="display: inline;">
+                        <input type="hidden" name="ticket_id" id="deleteTicketId">
+                        <button type="submit" name="delete_ticket" class="btn btn-danger">Eliminar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+    function confirmDeleteTicket(ticketId, clientName) {
+        document.getElementById('ticketClientName').textContent = clientName;
+        document.getElementById('deleteTicketId').value = ticketId;
+        new bootstrap.Modal(document.getElementById('deleteTicketModal')).show();
+    }
+    </script>
 </body>
 </html>
