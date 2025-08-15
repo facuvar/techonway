@@ -1,23 +1,15 @@
 <?php
-// Manejo de sesiones robusto para Railway
+// Manejo de sesiones simplificado para Railway
 session_start();
 
-// Debug: Verificar si es una solicitud desde el dashboard
-$from_dashboard = isset($_GET['from_dashboard']) || isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'dashboard.php') !== false;
+// Verificar sesión de manera segura
+$user_id = $_SESSION['user_id'] ?? null;
+$user_role = $_SESSION['role'] ?? null;
 
-// Si no hay sesión válida Y no viene del dashboard, intentar recuperar o redirigir
-if ((!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') && !$from_dashboard) {
-    // Intentar una verificación más flexible
-    if (isset($_COOKIE[session_name()])) {
-        // Hay cookie de sesión, pero tal vez no se cargó la sesión
-        session_regenerate_id(true);
-    }
-    
-    // Si aún no hay sesión válida, redirigir
-    if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-        header('Location: /admin/force_login_and_calendar.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
-        exit();
-    }
+// Si no hay sesión válida, redirigir al login
+if (!$user_id || $user_role !== 'admin') {
+    header('Location: /admin/force_login_and_calendar.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
+    exit();
 }
 
 // Cargar solo lo esencial
@@ -58,37 +50,37 @@ $auth->isLoggedIn = function() { return isset($_SESSION['user_id']); };
 $auth->isAdmin = function() { return $_SESSION['role'] === 'admin'; };
 
 try {
-    $db = Database::getInstance();
-    
+$db = Database::getInstance();
+
     // Get month and year
-    $month = $_GET['month'] ?? date('m');
-    $year = $_GET['year'] ?? date('Y');
-    
-    $month = max(1, min(12, intval($month)));
-    $year = max(2020, min(2030, intval($year)));
-    
-    $startDate = sprintf('%04d-%02d-01', $year, $month);
+$month = $_GET['month'] ?? date('m');
+$year = $_GET['year'] ?? date('Y');
+
+$month = max(1, min(12, intval($month)));
+$year = max(2020, min(2030, intval($year)));
+
+$startDate = sprintf('%04d-%02d-01', $year, $month);
     $endDate = date('Y-m-t', strtotime($startDate));
-    
-    $scheduledTickets = $db->select("
+
+$scheduledTickets = $db->select("
         SELECT t.id, t.scheduled_date, t.scheduled_time, t.description, t.priority,
                c.name as client_name, c.address
-        FROM tickets t
-        JOIN clients c ON t.client_id = c.id
-        WHERE t.scheduled_date IS NOT NULL 
-        AND t.scheduled_date BETWEEN ? AND ?
-        ORDER BY t.scheduled_date, t.scheduled_time
-    ", [$startDate, $endDate]);
-    
-    $ticketsByDate = [];
-    foreach ($scheduledTickets as $ticket) {
-        $date = $ticket['scheduled_date'];
-        if (!isset($ticketsByDate[$date])) {
-            $ticketsByDate[$date] = [];
-        }
-        $ticketsByDate[$date][] = $ticket;
+    FROM tickets t
+    JOIN clients c ON t.client_id = c.id
+    WHERE t.scheduled_date IS NOT NULL 
+    AND t.scheduled_date BETWEEN ? AND ?
+    ORDER BY t.scheduled_date, t.scheduled_time
+", [$startDate, $endDate]);
+
+$ticketsByDate = [];
+foreach ($scheduledTickets as $ticket) {
+    $date = $ticket['scheduled_date'];
+    if (!isset($ticketsByDate[$date])) {
+        $ticketsByDate[$date] = [];
     }
-    
+    $ticketsByDate[$date][] = $ticket;
+}
+
     // Page title para el header
     $pageTitle = 'Calendario de Citas';
     
@@ -140,8 +132,8 @@ try {
                 </button>
                 <a class="navbar-brand mb-0 h1 d-flex align-items-center" href="<?php echo BASE_URL; ?>dashboard.php">
                     <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="Logo" style="height:28px;width:auto;"/>
-                </a>
-            </div>
+            </a>
+        </div>
         </nav>
         
         <!-- Offcanvas Sidebar for mobile -->
@@ -149,7 +141,7 @@ try {
             <div class="offcanvas-header border-bottom">
                 <h5 class="offcanvas-title">Menú</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
-            </div>
+    </div>
             <div class="offcanvas-body p-0">
                             <div class="sidebar-content">
                 <!-- Mobile sidebar content -->
@@ -166,22 +158,31 @@ try {
                             <i class="bi bi-speedometer2 me-2"></i>Dashboard
                         </a>
                         <a class="nav-link" href="/admin/clients.php">
-                            <i class="bi bi-people me-2"></i>Clientes
+                            <i class="bi bi-building me-2"></i>Clientes
+                        </a>
+                        <a class="nav-link" href="/admin/technicians.php">
+                            <i class="bi bi-person-gear me-2"></i>Técnicos
+                        </a>
+                        <a class="nav-link" href="/admin/admins.php">
+                            <i class="bi bi-shield-lock me-2"></i>Administradores
                         </a>
                         <a class="nav-link" href="/admin/tickets.php">
                             <i class="bi bi-ticket-perforated me-2"></i>Tickets
                         </a>
                         <a class="nav-link active" href="/admin/calendar.php">
-                            <i class="bi bi-calendar3 me-2"></i>Calendario
+                            <i class="bi bi-calendar-event me-2"></i>Calendario
+                        </a>
+                        <a class="nav-link" href="/admin/service_requests.php">
+                            <i class="bi bi-journal-text me-2"></i>Solicitudes
                         </a>
                         <a class="nav-link" href="/admin/visits.php">
-                            <i class="bi bi-geo-alt me-2"></i>Visitas
+                            <i class="bi bi-clipboard-check me-2"></i>Visitas
                         </a>
-                        <a class="nav-link" href="/admin/users.php">
-                            <i class="bi bi-person-gear me-2"></i>Usuarios
+                        <a class="nav-link" href="/admin/import_clients.php">
+                            <i class="bi bi-file-earmark-excel me-2"></i>Importar
                         </a>
-                        <a class="nav-link" href="/admin/settings.php">
-                            <i class="bi bi-gear me-2"></i>Configuración
+                        <a class="nav-link" href="/profile.php">
+                            <i class="bi bi-person me-2"></i>Perfil
                         </a>
                         <hr>
                         <a class="nav-link" href="/logout.php">
@@ -195,7 +196,7 @@ try {
         <div class="container-fluid">
             <div class="row">
                 <!-- Sidebar -->
-                            <div class="col-md-3 col-lg-2 px-0 sidebar d-none d-md-block">
+                                        <div class="col-md-3 col-lg-2 px-0 sidebar d-none d-md-block">
                 <div class="sidebar-brand text-center p-3">
                     <img src="<?php echo BASE_URL; ?>assets/img/logo.png" alt="TechonWay" style="height: 50px;">
                 </div>
@@ -204,34 +205,43 @@ try {
                     <div class="mt-2"><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></div>
                     <small class="text-light">Administrador</small>
                 </div>
-                    <nav class="nav flex-column">
-                        <a class="nav-link" href="/admin/dashboard.php">
-                            <i class="bi bi-speedometer2 me-2"></i>Dashboard
-                        </a>
-                        <a class="nav-link" href="/admin/clients.php">
-                            <i class="bi bi-people me-2"></i>Clientes
-                        </a>
-                        <a class="nav-link" href="/admin/tickets.php">
-                            <i class="bi bi-ticket-perforated me-2"></i>Tickets
-                        </a>
-                        <a class="nav-link active" href="/admin/calendar.php">
-                            <i class="bi bi-calendar3 me-2"></i>Calendario
-                        </a>
-                        <a class="nav-link" href="/admin/visits.php">
-                            <i class="bi bi-geo-alt me-2"></i>Visitas
-                        </a>
-                        <a class="nav-link" href="/admin/users.php">
-                            <i class="bi bi-person-gear me-2"></i>Usuarios
-                        </a>
-                        <a class="nav-link" href="/admin/settings.php">
-                            <i class="bi bi-gear me-2"></i>Configuración
-                        </a>
-                        <hr>
-                        <a class="nav-link" href="/logout.php">
-                            <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
-                        </a>
-                    </nav>
-                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="/admin/dashboard.php">
+                        <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                    </a>
+                    <a class="nav-link" href="/admin/clients.php">
+                        <i class="bi bi-building me-2"></i>Clientes
+                    </a>
+                    <a class="nav-link" href="/admin/technicians.php">
+                        <i class="bi bi-person-gear me-2"></i>Técnicos
+                    </a>
+                    <a class="nav-link" href="/admin/admins.php">
+                        <i class="bi bi-shield-lock me-2"></i>Administradores
+                    </a>
+                    <a class="nav-link" href="/admin/tickets.php">
+                        <i class="bi bi-ticket-perforated me-2"></i>Tickets
+                    </a>
+                    <a class="nav-link active" href="/admin/calendar.php">
+                        <i class="bi bi-calendar-event me-2"></i>Calendario
+                    </a>
+                    <a class="nav-link" href="/admin/service_requests.php">
+                        <i class="bi bi-journal-text me-2"></i>Solicitudes
+                    </a>
+                    <a class="nav-link" href="/admin/visits.php">
+                        <i class="bi bi-clipboard-check me-2"></i>Visitas
+                    </a>
+                    <a class="nav-link" href="/admin/import_clients.php">
+                        <i class="bi bi-file-earmark-excel me-2"></i>Importar
+                    </a>
+                    <a class="nav-link" href="/profile.php">
+                        <i class="bi bi-person me-2"></i>Perfil
+                    </a>
+                    <hr>
+                    <a class="nav-link" href="/logout.php">
+                        <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                    </a>
+                </nav>
+            </div>
                 <!-- Main content -->
                 <div class="col-12 col-md-9 col-lg-10 ms-auto main-content">
                     
@@ -273,19 +283,19 @@ try {
                                 <a href="/admin/tickets.php?action=create" class="btn btn-success">
                                     <i class="bi bi-plus"></i> Crear Ticket
                                 </a>
-                            </div>
-                        </div>
-                        
+        </div>
+    </div>
+    
                         <!-- Calendar -->
-                        <div class="table-responsive">
-                            <table class="table table-bordered calendar-table">
+            <div class="table-responsive">
+                <table class="table table-bordered calendar-table">
                                 <thead class="table-dark">
                                     <tr>
                                         <th>Domingo</th><th>Lunes</th><th>Martes</th><th>Miércoles</th><th>Jueves</th><th>Viernes</th><th>Sábado</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
                                     $firstDay = mktime(0, 0, 0, $month, 1, $year);
                                     $startDay = date('w', $firstDay);
                                     $daysInMonth = date('t', $firstDay);
@@ -317,14 +327,14 @@ try {
                                             echo '</td>';
                                         }
                                         echo '</tr>';
-                                    }
-                                    ?>
-                                </tbody>
-                            </table>
-                        </div>
-                        
+                        }
+                        ?>
+                    </tbody>
+                </table>
+    </div>
+    
                         <!-- Resumen -->
-                        <div class="row mt-4">
+    <div class="row mt-4">
                             <div class="col-md-8">
                                 <div class="card">
                                     <div class="card-body">
@@ -334,9 +344,9 @@ try {
                                             <strong>Mes:</strong> <?php echo date('F Y', mktime(0, 0, 0, $month, 1, $year)); ?><br>
                                             <small class="text-muted">Usuario: <?php echo $_SESSION['user_name'] ?? 'Admin'; ?></small>
                                         </p>
-                                    </div>
-                                </div>
-                            </div>
+                </div>
+            </div>
+        </div>
                             <div class="col-md-4">
                                 <div class="card">
                                     <div class="card-body">
@@ -348,16 +358,16 @@ try {
                                             <a href="/admin/dashboard.php" class="btn btn-secondary btn-sm">
                                                 <i class="bi bi-arrow-left"></i> Dashboard
                                             </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
-        
+    </div>
+</div>
+            </div>
+        </div>
+    </div>
+</div>
+
         <!-- Bootstrap JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     </body>
@@ -380,10 +390,10 @@ try {
                 <strong>Error:</strong> <?php echo $e->getMessage(); ?><br>
                 <strong>Archivo:</strong> <?php echo $e->getFile(); ?><br>
                 <strong>Línea:</strong> <?php echo $e->getLine(); ?><br>
-            </div>
+                                </div>
             <a href="/admin/dashboard.php" class="btn btn-secondary">← Volver al Dashboard</a>
             <a href="/admin/force_login_and_calendar.php" class="btn btn-primary">🔑 Login y Calendar</a>
-        </div>
+                                </div>
     </body>
     </html>
     <?php

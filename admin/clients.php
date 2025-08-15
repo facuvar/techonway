@@ -1,23 +1,15 @@
 <?php
-// Manejo de sesiones robusto para Railway
+// Manejo de sesiones simplificado para Railway
 session_start();
 
-// Debug: Verificar si es una solicitud desde el dashboard
-$from_dashboard = isset($_GET['from_dashboard']) || isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'dashboard.php') !== false;
+// Verificar sesión de manera segura
+$user_id = $_SESSION['user_id'] ?? null;
+$user_role = $_SESSION['role'] ?? null;
 
-// Si no hay sesión válida Y no viene del dashboard, intentar recuperar o redirigir
-if ((!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') && !$from_dashboard) {
-    // Intentar una verificación más flexible
-    if (isset($_COOKIE[session_name()])) {
-        // Hay cookie de sesión, pero tal vez no se cargó la sesión
-        session_regenerate_id(true);
-    }
-    
-    // Si aún no hay sesión válida, redirigir
-    if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-        header('Location: /admin/force_login_and_calendar.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
-        exit();
-    }
+// Si no hay sesión válida, redirigir al login
+if (!$user_id || $user_role !== 'admin') {
+    header('Location: /admin/force_login_and_calendar.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
+    exit();
 }
 
 // Cargar solo lo esencial
@@ -82,11 +74,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if (isset($_POST['delete_client'])) {
             $client_id = $_POST['client_id'];
-            // Verificar si tiene tickets asociados
+                // Verificar si tiene tickets asociados
             $tickets = $db->selectOne("SELECT COUNT(*) as count FROM tickets WHERE client_id = ?", [$client_id]);
             if ($tickets['count'] > 0) {
-                $error = 'No se puede eliminar el cliente porque tiene tickets asociados';
-            } else {
+                    $error = 'No se puede eliminar el cliente porque tiene tickets asociados';
+                } else {
                 $db->delete("DELETE FROM clients WHERE id = ?", [$client_id]);
                 $message = 'Cliente eliminado correctamente';
             }
@@ -110,7 +102,7 @@ try {
     
     if ($action === 'list') {
         // Obtener todos los clientes - manejo defensivo de columnas
-        $clients = $db->select("SELECT * FROM clients ORDER BY name");
+            $clients = $db->select("SELECT * FROM clients ORDER BY name");
     }
 } catch (Exception $e) {
     $error = 'Error de base de datos: ' . $e->getMessage();
@@ -164,26 +156,35 @@ if (isset($_GET['msg'])) {
                     <small class="text-light">Administrador</small>
                 </div>
                 <nav class="nav flex-column">
-                    <a class="nav-link" href="/admin/dashboard.php">
+                <a class="nav-link" href="/admin/dashboard.php">
                         <i class="bi bi-speedometer2 me-2"></i>Dashboard
                     </a>
                     <a class="nav-link active" href="/admin/clients.php">
-                        <i class="bi bi-people me-2"></i>Clientes
+                        <i class="bi bi-building me-2"></i>Clientes
+                    </a>
+                <a class="nav-link" href="/admin/technicians.php">
+                        <i class="bi bi-person-gear me-2"></i>Técnicos
+                    </a>
+                    <a class="nav-link" href="/admin/admins.php">
+                        <i class="bi bi-shield-lock me-2"></i>Administradores
                     </a>
                     <a class="nav-link" href="/admin/tickets.php">
                         <i class="bi bi-ticket-perforated me-2"></i>Tickets
                     </a>
                     <a class="nav-link" href="/admin/calendar.php">
-                        <i class="bi bi-calendar3 me-2"></i>Calendario
+                        <i class="bi bi-calendar-event me-2"></i>Calendario
                     </a>
-                    <a class="nav-link" href="/admin/visits.php">
-                        <i class="bi bi-geo-alt me-2"></i>Visitas
+                    <a class="nav-link" href="/admin/service_requests.php">
+                        <i class="bi bi-journal-text me-2"></i>Solicitudes
                     </a>
-                    <a class="nav-link" href="/admin/users.php">
-                        <i class="bi bi-person-gear me-2"></i>Usuarios
+                <a class="nav-link" href="/admin/visits.php">
+                        <i class="bi bi-clipboard-check me-2"></i>Visitas
                     </a>
-                    <a class="nav-link" href="/admin/settings.php">
-                        <i class="bi bi-gear me-2"></i>Configuración
+                    <a class="nav-link" href="/admin/import_clients.php">
+                        <i class="bi bi-file-earmark-excel me-2"></i>Importar
+                    </a>
+                    <a class="nav-link" href="/profile.php">
+                        <i class="bi bi-person me-2"></i>Perfil
                     </a>
                     <hr>
                     <a class="nav-link" href="/logout.php">
@@ -211,22 +212,31 @@ if (isset($_GET['msg'])) {
                         <i class="bi bi-speedometer2 me-2"></i>Dashboard
                     </a>
                     <a class="nav-link active" href="/admin/clients.php">
-                        <i class="bi bi-people me-2"></i>Clientes
+                        <i class="bi bi-building me-2"></i>Clientes
+                    </a>
+                    <a class="nav-link" href="/admin/technicians.php">
+                        <i class="bi bi-person-gear me-2"></i>Técnicos
+                    </a>
+                    <a class="nav-link" href="/admin/admins.php">
+                        <i class="bi bi-shield-lock me-2"></i>Administradores
                     </a>
                     <a class="nav-link" href="/admin/tickets.php">
                         <i class="bi bi-ticket-perforated me-2"></i>Tickets
                     </a>
                     <a class="nav-link" href="/admin/calendar.php">
-                        <i class="bi bi-calendar3 me-2"></i>Calendario
+                        <i class="bi bi-calendar-event me-2"></i>Calendario
+                    </a>
+                    <a class="nav-link" href="/admin/service_requests.php">
+                        <i class="bi bi-journal-text me-2"></i>Solicitudes
                     </a>
                     <a class="nav-link" href="/admin/visits.php">
-                        <i class="bi bi-geo-alt me-2"></i>Visitas
+                        <i class="bi bi-clipboard-check me-2"></i>Visitas
                     </a>
-                    <a class="nav-link" href="/admin/users.php">
-                        <i class="bi bi-person-gear me-2"></i>Usuarios
+                    <a class="nav-link" href="/admin/import_clients.php">
+                        <i class="bi bi-file-earmark-excel me-2"></i>Importar
                     </a>
-                    <a class="nav-link" href="/admin/settings.php">
-                        <i class="bi bi-gear me-2"></i>Configuración
+                    <a class="nav-link" href="/profile.php">
+                        <i class="bi bi-person me-2"></i>Perfil
                     </a>
                     <hr>
                     <a class="nav-link" href="/logout.php">
@@ -236,83 +246,83 @@ if (isset($_GET['msg'])) {
             </div>
             <!-- Main content -->
             <div class="col-12 col-md-9 col-lg-10 ms-auto main-content">
-                
+
                 <!-- Clients Content -->
                 <div class="container-fluid py-4">
-                    <?php if ($message): ?>
-                        <div class="alert alert-success alert-dismissible fade show">
-                            <?php echo htmlspecialchars($message); ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <?php if ($error): ?>
-                        <div class="alert alert-danger alert-dismissible fade show">
-                            <?php echo htmlspecialchars($error); ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <?php if ($action === 'list'): ?>
+            <?php if ($message): ?>
+            <div class="alert alert-success alert-dismissible fade show">
+                <?php echo htmlspecialchars($message); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <?php endif; ?>
+
+            <?php if ($error): ?>
+            <div class="alert alert-danger alert-dismissible fade show">
+                <?php echo htmlspecialchars($error); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <?php endif; ?>
+
+            <?php if ($action === 'list'): ?>
                                                  <div class="d-flex justify-content-between align-items-center mb-4">
                              <h1>Gestión de Clientes</h1>
                              <a href="?action=create" class="btn btn-success">
                                  <i class="bi bi-plus"></i> Crear Cliente
                              </a>
-                         </div>
-                        
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-striped">
-                                        <thead>
-                                            <tr>
-                                                <th>ID</th>
-                                                <th>Nombre</th>
-                                                <th>Email</th>
-                                                <th>Teléfono</th>
-                                                <th>Empresa</th>
-                                                <th>Dirección</th>
-                                                <th>Zona</th>
-                                                <th>Acciones</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php foreach ($clients as $c): ?>
-                                            <tr>
-                                                <td><?php echo $c['id']; ?></td>
-                                                <td><?php echo htmlspecialchars($c['name']); ?></td>
-                                                <td>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>Teléfono</th>
+                                    <th>Empresa</th>
+                                    <th>Dirección</th>
+                                    <th>Zona</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($clients as $c): ?>
+                                <tr>
+                                    <td><?php echo $c['id']; ?></td>
+                                    <td><?php echo htmlspecialchars($c['name']); ?></td>
+                                    <td>
                                                     <?php if (isset($c['email']) && $c['email']): ?>
-                                                        <a href="mailto:<?php echo htmlspecialchars($c['email']); ?>">
-                                                            <?php echo htmlspecialchars($c['email']); ?>
-                                                        </a>
-                                                    <?php else: ?>
-                                                        <span class="text-muted">Sin email</span>
-                                                    <?php endif; ?>
-                                                </td>
+                                            <a href="mailto:<?php echo htmlspecialchars($c['email']); ?>">
+                                                <?php echo htmlspecialchars($c['email']); ?>
+                                            </a>
+                                        <?php else: ?>
+                                            <span class="text-muted">Sin email</span>
+                                        <?php endif; ?>
+                                    </td>
                                                 <td><?php echo htmlspecialchars((isset($c['phone']) ? $c['phone'] : null) ?: 'Sin teléfono'); ?></td>
                                                 <td><?php echo htmlspecialchars((isset($c['business_name']) ? $c['business_name'] : null) ?: '-'); ?></td>
                                                 <td><?php echo htmlspecialchars((isset($c['address']) ? $c['address'] : null) ?: '-'); ?></td>
                                                 <td><?php echo htmlspecialchars((isset($c['zone']) ? $c['zone'] : null) ?: '-'); ?></td>
-                                                <td>
-                                                    <div class="btn-group btn-group-sm">
-                                                        <a href="?action=edit&id=<?php echo $c['id']; ?>" class="btn btn-outline-primary">
-                                                            <i class="bi bi-pencil"></i>
-                                                        </a>
-                                                        <button type="button" class="btn btn-outline-danger" onclick="confirmDelete(<?php echo $c['id']; ?>, '<?php echo htmlspecialchars($c['name']); ?>')">
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="?action=edit&id=<?php echo $c['id']; ?>" class="btn btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-danger" onclick="confirmDelete(<?php echo $c['id']; ?>, '<?php echo htmlspecialchars($c['name']); ?>')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
                     <?php elseif ($action === 'create' || $action === 'edit'): ?>
                                                  <div class="d-flex justify-content-between align-items-center mb-4">
                              <h1><?php echo $action === 'edit' ? 'Editar Cliente' : 'Crear Cliente'; ?></h1>
@@ -321,71 +331,71 @@ if (isset($_GET['msg'])) {
                              </a>
                          </div>
                         
-                        <div class="card">
-                            <div class="card-body">
-                                <form method="POST">
-                                    <?php if ($action === 'edit'): ?>
-                                        <input type="hidden" name="client_id" value="<?php echo $client['id']; ?>">
-                                    <?php endif; ?>
-                                    
-                                    <div class="row">
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST">
+                        <?php if ($action === 'edit'): ?>
+                        <input type="hidden" name="client_id" value="<?php echo $client['id']; ?>">
+                        <?php endif; ?>
+
+                        <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <label for="name" class="form-label">Nombre *</label>
                                             <input type="text" class="form-control" id="name" name="name" 
                                                    value="<?php echo $action === 'edit' ? htmlspecialchars($client['name']) : ''; ?>" required>
-                                        </div>
+                                </div>
                                         
                                         <div class="col-md-6 mb-3">
                                             <label for="email" class="form-label">Email</label>
                                             <input type="email" class="form-control" id="email" name="email" 
                                                    value="<?php echo $action === 'edit' ? htmlspecialchars(isset($client['email']) ? $client['email'] : '') : ''; ?>">
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="row">
+                            </div>
+                        </div>
+
+                        <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <label for="phone" class="form-label">Teléfono</label>
                                             <input type="tel" class="form-control" id="phone" name="phone" 
                                                    value="<?php echo $action === 'edit' ? htmlspecialchars(isset($client['phone']) ? $client['phone'] : '') : ''; ?>">
-                                        </div>
+                                </div>
                                         
                                         <div class="col-md-6 mb-3">
                                             <label for="business_name" class="form-label">Nombre de la Empresa</label>
                                             <input type="text" class="form-control" id="business_name" name="business_name" 
                                                    value="<?php echo $action === 'edit' ? htmlspecialchars(isset($client['business_name']) ? $client['business_name'] : '') : ''; ?>">
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="row">
+                            </div>
+                        </div>
+
+                        <div class="row">
                                         <div class="col-md-8 mb-3">
                                             <label for="address" class="form-label">Dirección</label>
                                             <textarea class="form-control" id="address" name="address" rows="2"><?php echo $action === 'edit' ? htmlspecialchars(isset($client['address']) ? $client['address'] : '') : ''; ?></textarea>
-                                        </div>
+                                </div>
                                         
                                         <div class="col-md-4 mb-3">
                                             <label for="zone" class="form-label">Zona</label>
                                             <input type="text" class="form-control" id="zone" name="zone" 
                                                    value="<?php echo $action === 'edit' ? htmlspecialchars(isset($client['zone']) ? $client['zone'] : '') : ''; ?>">
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="d-flex gap-2">
-                                        <button type="submit" name="save_client" class="btn btn-primary">
-                                            <i class="bi bi-check"></i> Guardar
-                                        </button>
-                                        <a href="?action=list" class="btn btn-secondary">
-                                            <i class="bi bi-x"></i> Cancelar
-                                        </a>
-                                    </div>
-                                </form>
                             </div>
                         </div>
-                    <?php endif; ?>
+
+                        <div class="d-flex gap-2">
+                                        <button type="submit" name="save_client" class="btn btn-primary">
+                                            <i class="bi bi-check"></i> Guardar
+                            </button>
+                            <a href="?action=list" class="btn btn-secondary">
+                                            <i class="bi bi-x"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <?php endif; ?>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- Modal de confirmación para eliminar -->
     <div class="modal fade" id="deleteModal" tabindex="-1">
         <div class="modal-dialog">
@@ -407,7 +417,7 @@ if (isset($_GET['msg'])) {
             </div>
         </div>
     </div>
-    
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     
