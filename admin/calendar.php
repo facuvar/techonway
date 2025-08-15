@@ -103,31 +103,22 @@ try {
         $ticketsByDate[$date][] = $ticket;
     }
     
+    
+    // Page title para el header
+    $pageTitle = 'Calendario de Citas';
+    
+    // Include header (ya incluye sidebar automáticamente)
+    include '../templates/header.php';
     ?>
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Calendario Admin - TechonWay</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <style>
-        .calendar-table { background-color: #B9C3C6; }
-        .btn-month-nav { background-color: #2D3142; color: white; }
-        .appointment { background-color: #5B6386; color: white; margin-bottom: 5px; padding: 5px; border-radius: 3px; }
-        .appointment .time { font-weight: bold; }
-        </style>
-    </head>
-    <body>
-        <nav class="navbar navbar-dark bg-dark">
-            <div class="container-fluid">
-                <span class="navbar-brand">TechonWay Admin</span>
-                <span class="navbar-text">
-                    👤 <?php echo $_SESSION['user_name'] ?? 'Admin'; ?> | 📅 Calendar
-                </span>
-            </div>
-        </nav>
-        
+    
+    <style>
+    .calendar-table { background-color: #B9C3C6; }
+    .btn-month-nav { background-color: #2D3142; color: white; }
+    .appointment { background-color: #5B6386; color: white; margin-bottom: 5px; padding: 5px; border-radius: 3px; }
+    .appointment .time { font-weight: bold; }
+    </style>
+    
+    <div class="main-content">
         <div class="container-fluid py-4">
             <div class="row">
                 <div class="col-12">
@@ -226,19 +217,29 @@ try {
                 </div>
             </div>
         </div>
-    </body>
-    </html>
+    </div>
+    
+    <?php include '../templates/footer.php'; ?>
     
     <?php
     
 } catch (Exception $e) {
-    echo "<div class='container py-5'>";
-    echo "<div class='alert alert-danger'>";
-    echo "<h4>❌ Error en Calendar</h4>";
-    echo "<strong>Error:</strong> " . $e->getMessage() . "<br>";
-    echo "<strong>Archivo:</strong> " . $e->getFile() . "<br>";
-    echo "<strong>Línea:</strong> " . $e->getLine() . "<br>";
-    echo "</div>";
-    echo "</div>";
+    // Page title para el header
+    $pageTitle = 'Error en Calendario';
+    include '../templates/header.php';
+    ?>
+    
+    <div class="main-content">
+        <div class="container-fluid py-4">
+            <div class="alert alert-danger">
+                <h4>❌ Error en Calendar</h4>
+                <strong>Error:</strong> <?php echo $e->getMessage(); ?><br>
+                <strong>Archivo:</strong> <?php echo $e->getFile(); ?><br>
+                <strong>Línea:</strong> <?php echo $e->getLine(); ?><br>
+            </div>
+        </div>
+    </div>
+    
+    <?php include '../templates/footer.php';
 }
 ?>
