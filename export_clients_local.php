@@ -7,15 +7,18 @@
 try {
     echo "<h1>📤 Exportando clientes desde local</h1>";
     
-    // Conexión a base de datos local
-    $localHost = 'localhost';
-    $localDb = 'techonway_db';
-    $localUser = 'root';
-    $localPass = '';
+    // Usar configuración local existente
+    require_once 'config/database.php';
+    $dbConfig = require 'config/database.php';
     
     echo "<p>📡 Conectando a base de datos local...</p>";
+    echo "<p>🔧 Base de datos: " . $dbConfig['dbname'] . "</p>";
     
-    $localPdo = new PDO("mysql:host=$localHost;dbname=$localDb;charset=utf8", $localUser, $localPass);
+    $localPdo = new PDO(
+        "mysql:host={$dbConfig['host']};dbname={$dbConfig['dbname']};charset={$dbConfig['charset']}", 
+        $dbConfig['username'], 
+        $dbConfig['password']
+    );
     $localPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     echo "<p style='color: green;'>✅ Conectado a base de datos local</p>";
