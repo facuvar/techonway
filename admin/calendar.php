@@ -29,11 +29,10 @@ $scheduledTickets = $db->select("
            c.business_name,
            c.address,
            c.email as client_email,
-           u.name as technician_name,
-           u.zone as technician_zone
+           CONCAT(u.name, ' ', COALESCE(u.last_name, '')) as technician_name
     FROM tickets t
     JOIN clients c ON t.client_id = c.id
-    JOIN users u ON t.technician_id = u.id
+    LEFT JOIN users u ON t.assigned_to = u.id
     WHERE t.scheduled_date IS NOT NULL 
     AND t.scheduled_date BETWEEN ? AND ?
     ORDER BY t.scheduled_date, t.scheduled_time
