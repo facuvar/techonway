@@ -112,8 +112,15 @@ if (!isset($GLOBALS['extra_css'])) {
     $GLOBALS['extra_css'] = [];
 }
 $GLOBALS['extra_css'][] = '<style>
+/* Fondo gris para toda la página */
+.main-content {
+    background-color: #f8f9fa !important;
+    min-height: 100vh;
+}
+
+/* Botones de navegación del mes */
 .btn-month-nav {
-    background-color: #2D3142;
+    background-color: #505775;
     color: white;
     padding: 0.5rem 1rem;
     text-decoration: none;
@@ -121,12 +128,18 @@ $GLOBALS['extra_css'][] = '<style>
     display: inline-flex;
     align-items: center;
     border: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 .btn-month-nav:hover {
-    background-color: #1a1e2e;
+    background-color: #3d4258;
     color: white;
     text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
+
+/* Estilos de las citas */
 .appointment {
     background-color: #5B6386;
     color: white;
@@ -141,14 +154,18 @@ $GLOBALS['extra_css'][] = '<style>
 .appointment .client {
     font-weight: normal;
 }
+
+/* Tabla del calendario */
 .calendar-table {
     background-color: #B9C3C6;
+    border: 1px solid #505775;
 }
 .calendar-table td {
     vertical-align: top;
     height: 120px;
     width: 14.28%;
     position: relative;
+    border: 1px solid #505775;
 }
 .calendar-table .day-number {
     font-weight: bold;
@@ -161,6 +178,62 @@ $GLOBALS['extra_css'][] = '<style>
 .calendar-table .today {
     background-color: #fff3cd;
     border: 2px solid #ffc107;
+}
+
+/* Cabecera y pie de tabla */
+.calendar-table thead th {
+    background-color: #505775 !important;
+    color: white !important;
+    border: 1px solid #505775 !important;
+    font-weight: 600;
+    text-align: center;
+    padding: 12px 8px;
+}
+.calendar-table tfoot th,
+.calendar-table tfoot td {
+    background-color: #505775 !important;
+    color: white !important;
+    border: 1px solid #505775 !important;
+}
+
+/* Tabla de resumen de citas */
+.table thead th {
+    background-color: #505775 !important;
+    color: white !important;
+    border-color: #505775 !important;
+}
+
+/* Card del calendario */
+.card {
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.card-header {
+    background-color: #505775;
+    color: white;
+    border-bottom: 1px solid #505775;
+}
+.card-header h5 {
+    color: white;
+    margin: 0;
+}
+
+/* Botones de acción */
+.btn-primary {
+    background-color: #505775;
+    border-color: #505775;
+}
+.btn-primary:hover {
+    background-color: #3d4258;
+    border-color: #3d4258;
+}
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
 }
 </style>';
 
@@ -209,13 +282,15 @@ include_once '../templates/header.php';
     </div>
     
     <!-- Calendar -->
-    <div class="table-responsive">
-        <table class="table table-bordered calendar-table">
-            <thead class="table-dark">
-                <tr>
-                    <th>Domingo</th><th>Lunes</th><th>Martes</th><th>Miércoles</th><th>Jueves</th><th>Viernes</th><th>Sábado</th>
-                </tr>
-            </thead>
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered calendar-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Domingo</th><th>Lunes</th><th>Martes</th><th>Miércoles</th><th>Jueves</th><th>Viernes</th><th>Sábado</th>
+                        </tr>
+                    </thead>
             <tbody>
                 <?php
                 // Calcular el primer día del mes y de qué día de la semana es
@@ -292,8 +367,10 @@ include_once '../templates/header.php';
                     }
                 }
                 ?>
-            </tbody>
-        </table>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
     
     <!-- Resumen de citas del mes -->
