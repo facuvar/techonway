@@ -512,18 +512,70 @@ function confirmDelete(clientId, clientName) {
 }
 
 // Inicializar mapa si existe
-' . ($action === 'view' && isset($client) && $client['latitude'] && $client['longitude'] ? 
+' . ($action === 'view' && isset($client) ? 
 'document.addEventListener("DOMContentLoaded", function() {
-    var map = L.map("map").setView([' . $client['latitude'] . ', ' . $client['longitude'] . '], 15);
+    function initClientMap() {
+        if (typeof L === "undefined") {
+            setTimeout(initClientMap, 500);
+            return;
+        }
+        
+        const mapContainer = document.getElementById("map");
+        if (!mapContainer) {
+            console.error("Map container not found");
+            return;
+        }
+        
+        // Coordenadas del cliente
+        const lat = ' . floatval($client['latitude'] ?? 0) . ';
+        const lng = ' . floatval($client['longitude'] ?? 0) . ';
+        
+        console.log("Initializing client map with coordinates:", lat, lng);
+        
+        // Si no hay coordenadas válidas, usar coordenadas por defecto de Buenos Aires
+        let displayLat = lat;
+        let displayLng = lng;
+        let isDefaultLocation = false;
+        
+        if (!lat || !lng || lat === 0 || lng === 0) {
+            displayLat = -34.6118;  // Buenos Aires
+            displayLng = -58.3960;
+            isDefaultLocation = true;
+            console.log("Using default coordinates for Buenos Aires");
+        }
+        
+        try {
+            const map = L.map("map").setView([displayLat, displayLng], isDefaultLocation ? 10 : 15);
+            
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                attribution: "© OpenStreetMap contributors"
+            }).addTo(map);
+            
+            // Add marker at location
+            let popupText = "<strong>' . addslashes(htmlspecialchars($client['name'] ?? '')) . '</strong><br>' . addslashes(htmlspecialchars($client['address'] ?? '')) . '";
+            if (isDefaultLocation) {
+                popupText += "<br><small style=\"color: #dc3545;\">⚠️ Ubicación aproximada - Sin coordenadas específicas</small>";
+            }
+            
+            L.marker([displayLat, displayLng])
+                .addTo(map)
+                .bindPopup(popupText)
+                .openPopup();
+                
+            // Refresh map size when visible
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 500);
+            
+            console.log("Client map initialized successfully");
+        } catch (error) {
+            console.error("Error initializing client map:", error);
+            mapContainer.innerHTML = "<div class=\"alert alert-danger\">Error al cargar el mapa</div>";
+        }
+    }
     
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap contributors"
-    }).addTo(map);
-    
-    L.marker([' . $client['latitude'] . ', ' . $client['longitude'] . '])
-        .addTo(map)
-        .bindPopup("<strong>' . htmlspecialchars($client['name']) . '</strong><br>' . htmlspecialchars($client['address'] ?? '') . '")
-        .openPopup();
+    // Start initialization
+    initClientMap();
 });' : '') . '
 </script>';
 

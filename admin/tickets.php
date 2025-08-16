@@ -658,7 +658,7 @@ include_once '../templates/header.php';
                                                                 </div>
                     
                     <!-- Mapa -->
-                    <?php if ($ticket['latitude'] && $ticket['longitude']): ?>
+                    <?php if (true): // Siempre mostrar el mapa ?>
                     <div class="card">
                         <div class="card-header">
                             <h6 class="card-title mb-0">Ubicación</h6>
@@ -709,7 +709,7 @@ include_once '../templates/header.php';
 if (!isset($GLOBALS['extra_css'])) {
     $GLOBALS['extra_css'] = [];
 }
-if ($action === 'view' && $ticket && $ticket['latitude'] && $ticket['longitude']) {
+if ($action === 'view' && $ticket) {
     $GLOBALS['extra_css'][] = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>';
     $GLOBALS['extra_css'][] = '<style>
 #ticketMap {
@@ -741,7 +741,7 @@ function confirmDeleteTicket(ticketId, clientName) {
 </script>';
 
 // JavaScript for map in view mode
-if ($action === 'view' && $ticket && $ticket['latitude'] && $ticket['longitude']) {
+if ($action === 'view' && $ticket) {
     $GLOBALS['extra_js'][] = '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>';
     $GLOBALS['extra_js'][] = '<script>
 document.addEventListener("DOMContentLoaded", function() {
@@ -764,22 +764,34 @@ document.addEventListener("DOMContentLoaded", function() {
         
         console.log("Initializing map with coordinates:", lat, lng);
         
+        // Si no hay coordenadas válidas, usar coordenadas por defecto de Buenos Aires
+        let displayLat = lat;
+        let displayLng = lng;
+        let isDefaultLocation = false;
+        
         if (!lat || !lng || lat === 0 || lng === 0) {
-            mapContainer.innerHTML = "<div class=\"alert alert-warning\">No hay coordenadas disponibles para este cliente</div>";
-            return;
+            displayLat = -34.6118;  // Buenos Aires
+            displayLng = -58.3960;
+            isDefaultLocation = true;
+            console.log("Using default coordinates for Buenos Aires");
         }
         
         try {
-            const map = L.map("ticketMap").setView([lat, lng], 15);
+            const map = L.map("ticketMap").setView([displayLat, displayLng], isDefaultLocation ? 10 : 15);
             
             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
                 attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
             }).addTo(map);
             
-            // Add marker at client location
-            L.marker([lat, lng])
+            // Add marker at location
+            let popupText = "' . addslashes(escape($ticket['client_name'])) . '<br>' . addslashes(escape($ticket['address'])) . '";
+            if (isDefaultLocation) {
+                popupText += "<br><small style=\"color: #dc3545;\">⚠️ Ubicación aproximada - Sin coordenadas específicas</small>";
+            }
+            
+            L.marker([displayLat, displayLng])
                 .addTo(map)
-                .bindPopup("' . addslashes(escape($ticket['client_name'])) . '<br>' . addslashes(escape($ticket['address'])) . '");
+                .bindPopup(popupText);
             
             // Refresh map size when visible
             setTimeout(() => {
