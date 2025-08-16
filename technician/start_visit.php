@@ -28,8 +28,8 @@ $ticket = $db->selectOne("
            c.latitude, c.longitude
     FROM tickets t
     JOIN clients c ON t.client_id = c.id
-    WHERE t.id = ? AND t.technician_id = ?
-", [$ticketId, $technicianId]);
+    WHERE t.id = ? AND (t.technician_id = ? OR t.assigned_to = ?)
+", [$ticketId, $technicianId, $technicianId]);
 
 if (!$ticket) {
     flash('Ticket no encontrado o no asignado a usted.', 'danger');
@@ -56,12 +56,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Start the visit
         $visitId = $db->insert('visits', [
             'ticket_id' => $ticketId,
-            'technician_id' => $technicianId,
             'start_time' => $startTime,
             'start_notes' => $notes,
-            'start_location_lat' => null, // No GPS verification for manual start
-            'start_location_lng' => null,
-            'qr_verified' => 0 // Mark as not QR verified
+            'latitude' => null, // No GPS verification for manual start
+            'longitude' => null
         ]);
         
         // Update ticket status to in_progress
@@ -86,7 +84,7 @@ include_once '../templates/header.php';
 
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
+        <div class="col-lg-10 col-xl-8">
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title">
