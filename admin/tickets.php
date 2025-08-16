@@ -92,13 +92,13 @@ $error = '';
 // Procesar formularios
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        if (isset($_POST['save_ticket'])) {
+    if (isset($_POST['save_ticket'])) {
             $clientId = $_POST['client_id'] ?? null;
             $assignedTo = $_POST['assigned_to'] ?? null;
             $description = $_POST['description'] ?? '';
             $priority = $_POST['priority'] ?? 'medium';
-            $scheduledDate = !empty($_POST['scheduled_date']) ? $_POST['scheduled_date'] : null;
-            $scheduledTime = !empty($_POST['scheduled_time']) ? $_POST['scheduled_time'] : null;
+        $scheduledDate = !empty($_POST['scheduled_date']) ? $_POST['scheduled_date'] : null;
+        $scheduledTime = !empty($_POST['scheduled_time']) ? $_POST['scheduled_time'] : null;
             $securityCode = ($scheduledDate && $scheduledTime) ? generateSecurityCode() : null;
             
             if (empty($clientId) || empty($description)) {
@@ -132,21 +132,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         try {
                             $technician = $db->selectOne("SELECT * FROM users WHERE id = ?", [$assignedTo]);
                             $client = $db->selectOne("SELECT * FROM clients WHERE id = ?", [$clientId]);
-                            $ticketData = [
+        $ticketData = [
                                 'id' => $ticketId,
                                 'description' => $description,
                                 'priority' => $priority,
-                                'scheduled_date' => $scheduledDate,
-                                'scheduled_time' => $scheduledTime,
-                                'security_code' => $securityCode
-                            ];
-                            
+            'scheduled_date' => $scheduledDate,
+            'scheduled_time' => $scheduledTime,
+            'security_code' => $securityCode
+        ];
+        
                             if ($technician && $technician['phone']) {
-                                $whatsapp = new WhatsAppNotifier();
+                        $whatsapp = new WhatsAppNotifier();
                                 $whatsapp->sendTicketNotification($technician, $ticketData, $client);
                                 $message .= ' - WhatsApp enviado al técnico';
                             }
-                        } catch (Exception $e) {
+                    } catch (Exception $e) {
                             $message .= ' - Error al enviar WhatsApp: ' . $e->getMessage();
                         }
                     }
@@ -164,12 +164,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 
                                 $mailer->send($client['email'], $client['name'], $subject, $emailBody);
                                 $message .= ' - Email enviado al cliente';
-                            }
-                        } catch (Exception $e) {
-                            $message .= ' - Error al enviar email: ' . $e->getMessage();
                         }
+                    } catch (Exception $e) {
+                            $message .= ' - Error al enviar email: ' . $e->getMessage();
                     }
-                } else {
+                }
+            } else {
                     // Insert
                     $db->query("
                         INSERT INTO tickets (client_id, technician_id, assigned_to, description, priority, scheduled_date, scheduled_time, security_code, status) 
@@ -194,11 +194,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             ];
                             
                             if ($technician && $technician['phone']) {
-                                $whatsapp = new WhatsAppNotifier();
+                    $whatsapp = new WhatsAppNotifier();
                                 $whatsapp->sendTicketNotification($technician, $ticketData, $client);
                                 $message .= ' - WhatsApp enviado al técnico';
                             }
-                        } catch (Exception $e) {
+                } catch (Exception $e) {
                             $message .= ' - Error al enviar WhatsApp: ' . $e->getMessage();
                         }
                     }
@@ -214,20 +214,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 
                                 $mailer->send($client['email'], $client['name'], $subject, $emailBody);
                                 $message .= ' - Email enviado al cliente';
-                            }
-                        } catch (Exception $e) {
-                            $message .= ' - Error al enviar email: ' . $e->getMessage();
                         }
+                    } catch (Exception $e) {
+                            $message .= ' - Error al enviar email: ' . $e->getMessage();
                     }
                 }
-                
+            }
+            
                 // Redirigir para evitar resubmit
                 header('Location: ?action=list&msg=' . urlencode($message));
                 exit();
-            }
         }
-        
-        if (isset($_POST['delete_ticket'])) {
+    }
+    
+    if (isset($_POST['delete_ticket'])) {
             $ticket_id = $_POST['ticket_id'];
             // Verificar si el ticket existe
             $ticket = $db->selectOne("SELECT id, client_id FROM tickets WHERE id = ?", [$ticket_id]);
@@ -260,34 +260,34 @@ try {
     }
 
     if ($action === 'view' && isset($_GET['id'])) {
-        $ticket = $db->selectOne("
-            SELECT t.*, 
+    $ticket = $db->selectOne("
+        SELECT t.*, 
                    c.name as client_name, c.business_name, c.address, c.phone,
                    c.latitude, c.longitude,
                    u.name as technician_name, u.last_name as technician_last_name
-            FROM tickets t
+        FROM tickets t
             LEFT JOIN clients c ON t.client_id = c.id
             LEFT JOIN users u ON t.assigned_to = u.id
-            WHERE t.id = ?
+        WHERE t.id = ?
         ", [$_GET['id']]);
-        
-        if (!$ticket) {
+    
+    if (!$ticket) {
             $error = 'Ticket no encontrado.';
             $action = 'list';
         }
     }
 
-    if ($action === 'list') {
-        $tickets = $db->select("
+if ($action === 'list') {
+    $tickets = $db->select("
             SELECT t.*, 
                    c.name as client_name, 
                    c.business_name,
                    CONCAT(u.name, ' ', COALESCE(u.last_name, '')) as technician_name
-            FROM tickets t
+        FROM tickets t
             LEFT JOIN clients c ON t.client_id = c.id
             LEFT JOIN users u ON t.assigned_to = u.id
-            ORDER BY t.created_at DESC
-        ");
+        ORDER BY t.created_at DESC
+    ");
     }
 } catch (Exception $e) {
     $error = 'Error de base de datos: ' . $e->getMessage();
@@ -331,7 +331,7 @@ include_once '../templates/header.php';
         <?php if ($action === 'list'): ?>
         <a href="?action=create" class="btn btn-success">
             <i class="bi bi-plus"></i> Crear Ticket
-        </a>
+            </a>
         <?php endif; ?>
     </div>
     
@@ -349,16 +349,16 @@ include_once '../templates/header.php';
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
-
+    
     <?php if ($action === 'list'): ?>
     <!-- Lista de Tickets -->
-    <div class="card">
-        <div class="card-body">
+        <div class="card">
+            <div class="card-body">
             <?php if (!empty($tickets)): ?>
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
                                 <th>ID</th>
                                 <th>Cliente</th>
                                 <th>Descripción</th>
@@ -366,9 +366,9 @@ include_once '../templates/header.php';
                                 <th>Estado</th>
                                 <th>Cita</th>
                                 <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                                </tr>
+                            </thead>
+                            <tbody>
                             <?php foreach ($tickets as $t): ?>
                             <tr>
                                 <td><?php echo $t['id']; ?></td>
@@ -386,8 +386,8 @@ include_once '../templates/header.php';
                                             ($t['status'] === 'in_progress' ? 'warning' : 'secondary'); 
                                     ?>">
                                         <?php echo ucfirst($t['status']); ?>
-                                    </span>
-                                </td>
+                                            </span>
+                                        </td>
                                 <td>
                                     <?php if ($t['scheduled_date']): ?>
                                         <small>
@@ -404,60 +404,60 @@ include_once '../templates/header.php';
                                 <td>
                                     <div class="btn-group btn-group-sm">
                                         <a href="?action=view&id=<?php echo $t['id']; ?>" class="btn btn-outline-info" title="Ver">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
                                         <a href="?action=edit&id=<?php echo $t['id']; ?>" class="btn btn-outline-primary" title="Editar">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
                                         <button type="button" class="btn btn-outline-danger" onclick="confirmDeleteTicket(<?php echo $t['id']; ?>, '<?php echo htmlspecialchars($t['client_name']); ?>')" title="Eliminar">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 <?php else: ?>
                 <p class="text-muted">No hay tickets registrados.</p>
                 <?php endif; ?>
+            </div>
         </div>
-    </div>
-
+        
     <?php else: ?>
     <!-- Formulario Crear/Editar -->
-    <div class="card">
+        <div class="card">
         <div class="card-header">
             <h5 class="mb-0">
                 <?php echo $action === 'edit' ? 'Editar Ticket #' . $ticket['id'] : 'Crear Nuevo Ticket'; ?>
             </h5>
         </div>
-        <div class="card-body">
+            <div class="card-body">
             <form method="POST">
-                <?php if ($action === 'edit'): ?>
-                <input type="hidden" name="ticket_id" value="<?php echo $ticket['id']; ?>">
-                <?php endif; ?>
-
+                    <?php if ($action === 'edit'): ?>
+                        <input type="hidden" name="ticket_id" value="<?php echo $ticket['id']; ?>">
+                    <?php endif; ?>
+                    
                 <div class="row">
-                    <div class="col-md-6">
+                        <div class="col-md-6">
                         <div class="mb-3">
                             <label for="client_id" class="form-label">Cliente *</label>
                             <select class="form-select" id="client_id" name="client_id" required>
                                 <option value="">Seleccionar cliente...</option>
                                 <?php foreach ($clients as $client): ?>
-                                <option value="<?php echo $client['id']; ?>" 
+                                    <option value="<?php echo $client['id']; ?>" 
                                         <?php echo ($action === 'edit' && $ticket['client_id'] == $client['id']) ? 'selected' : ''; ?>>
                                     <?php echo htmlspecialchars($client['name']); ?>
                                     <?php if ($client['business_name']): ?>
                                         - <?php echo htmlspecialchars($client['business_name']); ?>
                                     <?php endif; ?>
-                                </option>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                    </div>
-                    <div class="col-md-6">
+                        </div>
+                        <div class="col-md-6">
                         <div class="mb-3">
                             <label for="assigned_to" class="form-label">Asignar a Técnico</label>
                             <select class="form-select" id="assigned_to" name="assigned_to">
@@ -466,7 +466,7 @@ include_once '../templates/header.php';
                                 <option value="<?php echo $technician['id']; ?>"
                                         <?php echo ($action === 'edit' && $ticket['assigned_to'] == $technician['id']) ? 'selected' : ''; ?>>
                                     <?php echo htmlspecialchars($technician['name'] . ' ' . $technician['last_name']); ?>
-                                </option>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -484,46 +484,46 @@ include_once '../templates/header.php';
                                 <option value="urgent" <?php echo ($action === 'edit' && $ticket['priority'] === 'urgent') ? 'selected' : ''; ?>>Urgente</option>
                             </select>
                         </div>
+                        </div>
                     </div>
-                </div>
-
-                <div class="mb-3">
+                    
+                    <div class="mb-3">
                     <label for="description" class="form-label">Descripción del Problema *</label>
                     <textarea class="form-control" id="description" name="description" rows="4" required><?php echo $action === 'edit' ? htmlspecialchars($ticket['description']) : ''; ?></textarea>
-                </div>
-
-                <div class="row">
+                    </div>
+                    
+                            <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="scheduled_date" class="form-label">Fecha de la Cita</label>
-                            <input type="date" class="form-control" id="scheduled_date" name="scheduled_date" 
+                                    <input type="date" class="form-control" id="scheduled_date" name="scheduled_date" 
                                    value="<?php echo $ticket ? $ticket['scheduled_date'] : ''; ?>">
                         </div>
-                    </div>
+                                </div>
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="scheduled_time" class="form-label">Hora de la Cita</label>
-                            <input type="time" class="form-control" id="scheduled_time" name="scheduled_time" 
+                                    <input type="time" class="form-control" id="scheduled_time" name="scheduled_time" 
                                    value="<?php echo $ticket ? $ticket['scheduled_time'] : ''; ?>">
-                        </div>
-                    </div>
-                </div>
-
+                                    </div>
+                                </div>
+                            </div>
+                            
                 <!-- Mostrar código de seguridad si existe -->
                 <?php if ($action === 'edit' && $ticket && $ticket['security_code'] && $ticket['scheduled_date'] && $ticket['scheduled_time']): ?>
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label class="form-label">Código de Seguridad</label>
-                            <div class="alert alert-info">
+                                <div class="alert alert-info">
                                 <i class="bi bi-shield-check"></i> <strong><?php echo $ticket['security_code']; ?></strong>
                                 <br><small class="text-muted">Este código se envía al cliente por email cuando se programa la cita</small>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <?php endif; ?>
-
+                        </div>
+                    <?php endif; ?>
+                    
                 <div class="d-flex gap-2">
                     <button type="submit" name="save_ticket" class="btn btn-success">
                         <i class="bi bi-check"></i> Guardar Ticket
@@ -531,10 +531,10 @@ include_once '../templates/header.php';
                     <a href="?action=list" class="btn btn-secondary">
                         <i class="bi bi-arrow-left"></i> Volver
                     </a>
-                </div>
-            </form>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
     <?php endif; ?>
 
     <!-- Vista de detalle del ticket -->
@@ -552,14 +552,14 @@ include_once '../templates/header.php';
             </div>
         </div>
         <div class="card-body">
-            <div class="row">
-                <div class="col-md-8">
+        <div class="row">
+            <div class="col-md-8">
                     <!-- Información del ticket -->
                     <div class="card mb-4">
-                        <div class="card-header">
+                    <div class="card-header">
                             <h6 class="card-title mb-0">Información del Ticket</h6>
-                        </div>
-                        <div class="card-body">
+                    </div>
+                    <div class="card-body">
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
@@ -571,41 +571,41 @@ include_once '../templates/header.php';
                                         <p class="mb-0">
                                             <span class="badge bg-<?php echo $ticket['status'] === 'pending' ? 'warning' : ($ticket['status'] === 'completed' ? 'success' : 'secondary'); ?>">
                                                 <?php echo ucfirst($ticket['status']); ?>
-                                            </span>
-                                        </p>
-                                    </div>
+                            </span>
+                            </p>
+                        </div>
                                     <div class="mb-3">
                                         <strong>Prioridad:</strong>
                                         <p class="mb-0">
                                             <span class="badge bg-<?php echo $ticket['priority'] === 'urgent' ? 'danger' : ($ticket['priority'] === 'high' ? 'warning' : ($ticket['priority'] === 'medium' ? 'info' : 'secondary')); ?>">
                                                 <?php echo ucfirst($ticket['priority']); ?>
                                             </span>
-                                        </p>
-                                    </div>
-                                </div>
+                            </p>
+                        </div>
+                        </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <strong>Técnico Asignado:</strong>
                                         <p class="mb-0">
                                             <?php echo $ticket['technician_name'] ? escape($ticket['technician_name'] . ' ' . $ticket['technician_last_name']) : 'Sin asignar'; ?>
                                         </p>
-                                    </div>
-                                    <div class="mb-3">
+                    </div>
+                        <div class="mb-3">
                                         <strong>Fecha de Creación:</strong>
                                         <p class="mb-0"><?php echo date('d/m/Y H:i', strtotime($ticket['created_at'])); ?></p>
-                                    </div>
+                        </div>
                                     <?php if ($ticket['scheduled_date'] && $ticket['scheduled_time']): ?>
-                                    <div class="mb-3">
+                        <div class="mb-3">
                                         <strong>Fecha Programada:</strong>
                                         <p class="mb-0">
                                             <i class="bi bi-calendar"></i> <?php echo date('d/m/Y', strtotime($ticket['scheduled_date'])); ?>
                                             <i class="bi bi-clock ms-2"></i> <?php echo date('H:i', strtotime($ticket['scheduled_time'])); ?>
                                         </p>
-                                    </div>
-                                    <?php endif; ?>
-                                </div>
                             </div>
-                            
+                        <?php endif; ?>
+                    </div>
+                </div>
+                
                             <div class="mb-3">
                                 <strong>Descripción:</strong>
                                 <p class="mb-0"><?php echo nl2br(escape($ticket['description'])); ?></p>
@@ -620,10 +620,10 @@ include_once '../templates/header.php';
                                 </div>
                             </div>
                             <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
-                
+                                </div>
+                            </div>
+                                </div>
+                                
                 <div class="col-md-4">
                     <!-- Información del cliente -->
                     <div class="card mb-4">
@@ -631,31 +631,31 @@ include_once '../templates/header.php';
                             <h6 class="card-title mb-0">Información del Cliente</h6>
                         </div>
                         <div class="card-body">
-                            <div class="mb-3">
+                                <div class="mb-3">
                                 <strong>Nombre:</strong>
                                 <p class="mb-0"><?php echo escape($ticket['client_name']); ?></p>
-                            </div>
+                                </div>
                             
                             <?php if ($ticket['business_name']): ?>
-                            <div class="mb-3">
+                                                            <div class="mb-3">
                                 <strong>Empresa:</strong>
                                 <p class="mb-0"><?php echo escape($ticket['business_name']); ?></p>
-                            </div>
-                            <?php endif; ?>
-                            
+                                                            </div>
+                                                            <?php endif; ?>
+                                                            
                             <?php if ($ticket['phone']): ?>
-                            <div class="mb-3">
+                                                            <div class="mb-3">
                                 <strong>Teléfono:</strong>
                                 <p class="mb-0"><?php echo escape($ticket['phone']); ?></p>
-                            </div>
-                            <?php endif; ?>
-                            
-                            <div class="mb-3">
+                                                            </div>
+                                                            <?php endif; ?>
+                                                            
+                                                                <div class="mb-3">
                                 <strong>Dirección:</strong>
                                 <p class="mb-0"><?php echo escape($ticket['address']); ?></p>
                             </div>
-                        </div>
-                    </div>
+                                                                    </div>
+                                                                </div>
                     
                     <!-- Mapa -->
                     <?php if ($ticket['latitude'] && $ticket['longitude']): ?>
@@ -670,15 +670,15 @@ include_once '../templates/header.php';
                                    class="btn btn-outline-primary w-100" target="_blank">
                                     <i class="bi bi-map"></i> Abrir en Google Maps
                                 </a>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endif; ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            <?php endif; ?>
                 </div>
             </div>
-        </div>
-    </div>
-    <?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
 </div>
 
 <!-- Modal de confirmación para eliminar ticket -->
@@ -699,11 +699,11 @@ include_once '../templates/header.php';
                     <input type="hidden" name="ticket_id" id="deleteTicketId">
                     <button type="submit" name="delete_ticket" class="btn btn-danger">Eliminar</button>
                 </form>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
-
+        
 <?php
 // Add Leaflet CSS for the map in view mode
 if (!isset($GLOBALS['extra_css'])) {
@@ -711,6 +711,19 @@ if (!isset($GLOBALS['extra_css'])) {
 }
 if ($action === 'view' && $ticket && $ticket['latitude'] && $ticket['longitude']) {
     $GLOBALS['extra_css'][] = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>';
+    $GLOBALS['extra_css'][] = '<style>
+#ticketMap {
+    height: 300px !important;
+    width: 100% !important;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    position: relative;
+    z-index: 1;
+}
+.leaflet-container {
+    font-family: inherit;
+}
+</style>';
 }
 
 // Add extra JS after the template footer
@@ -732,25 +745,56 @@ if ($action === 'view' && $ticket && $ticket['latitude'] && $ticket['longitude']
     $GLOBALS['extra_js'][] = '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>';
     $GLOBALS['extra_js'][] = '<script>
 document.addEventListener("DOMContentLoaded", function() {
-    // Initialize map for ticket view
-    const lat = ' . $ticket['latitude'] . ';
-    const lng = ' . $ticket['longitude'] . ';
+    // Wait for Leaflet to load
+    function initMap() {
+        if (typeof L === "undefined") {
+            setTimeout(initMap, 500);
+            return;
+        }
+        
+        const mapContainer = document.getElementById("ticketMap");
+        if (!mapContainer) {
+            console.error("Map container not found");
+            return;
+        }
+        
+        // Initialize map for ticket view
+        const lat = ' . floatval($ticket['latitude']) . ';
+        const lng = ' . floatval($ticket['longitude']) . ';
+        
+        console.log("Initializing map with coordinates:", lat, lng);
+        
+        if (!lat || !lng || lat === 0 || lng === 0) {
+            mapContainer.innerHTML = "<div class=\"alert alert-warning\">No hay coordenadas disponibles para este cliente</div>";
+            return;
+        }
+        
+        try {
+            const map = L.map("ticketMap").setView([lat, lng], 15);
+            
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
+            }).addTo(map);
+            
+            // Add marker at client location
+            L.marker([lat, lng])
+                .addTo(map)
+                .bindPopup("' . addslashes(escape($ticket['client_name'])) . '<br>' . addslashes(escape($ticket['address'])) . '");
+            
+            // Refresh map size when visible
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 500);
+            
+            console.log("Map initialized successfully");
+        } catch (error) {
+            console.error("Error initializing map:", error);
+            mapContainer.innerHTML = "<div class=\"alert alert-danger\">Error al cargar el mapa</div>";
+        }
+    }
     
-    const map = L.map("ticketMap").setView([lat, lng], 15);
-    
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
-    }).addTo(map);
-    
-    // Add marker at client location
-    L.marker([lat, lng])
-        .addTo(map)
-        .bindPopup("' . escape($ticket['client_name']) . '<br>' . escape($ticket['address']) . '");
-    
-    // Refresh map size when visible
-    setTimeout(() => {
-        map.invalidateSize();
-    }, 100);
+    // Start initialization
+    initMap();
 });
 </script>';
 }
