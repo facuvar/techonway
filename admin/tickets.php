@@ -794,14 +794,14 @@ window.addEventListener("load", function() {
             // Clear loading message
             mapContainer.innerHTML = "";
             
-            const map = L.map("ticketMap").setView([displayLat, displayLng], isDefaultLocation ? 10 : 15);
+            const ticketViewMap = L.map("ticketMap").setView([displayLat, displayLng], isDefaultLocation ? 10 : 15);
             
             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
                 attribution: "&copy; OpenStreetMap contributors"
-            }).addTo(map);
+            }).addTo(ticketViewMap);
             
             // Add marker at location
-            const marker = L.marker([displayLat, displayLng]).addTo(map);
+            const marker = L.marker([displayLat, displayLng]).addTo(ticketViewMap);
             
             let popupText = "' . addslashes($ticket['client_name'] ?? '') . '<br>' . addslashes($ticket['address'] ?? '') . '";
             if (isDefaultLocation) {
@@ -812,7 +812,7 @@ window.addEventListener("load", function() {
             
             // Force map to refresh
             setTimeout(() => {
-                map.invalidateSize();
+                ticketViewMap.invalidateSize();
                 console.log("Map size invalidated");
             }, 100);
             

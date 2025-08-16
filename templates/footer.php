@@ -9,8 +9,9 @@
     <!-- QR Scanner -->
     <script src="https://unpkg.com/html5-qrcode"></script>
     <!-- Custom JS -->
-    <script src="<?php echo BASE_URL; ?>/assets/js/main.js"></script>
-    <!-- Dark Mode Fix -->
-    <script src="<?php echo BASE_URL; ?>/assets/js/dark-mode-fix.js"></script>
+    <?php if (defined('BASE_URL')): ?>
+    <script src="<?php echo rtrim(BASE_URL, '/'); ?>/assets/js/main.js"></script>
+    <script src="<?php echo rtrim(BASE_URL, '/'); ?>/assets/js/dark-mode-fix.js"></script>
+    <?php endif; ?>
 </body>
 </html>

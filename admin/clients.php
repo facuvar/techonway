@@ -563,14 +563,14 @@ function confirmDelete(clientId, clientName) {
             // Clear loading message
             mapContainer.innerHTML = "";
             
-            const map = L.map("map").setView([displayLat, displayLng], isDefaultLocation ? 10 : 15);
+            const clientViewMap = L.map("map").setView([displayLat, displayLng], isDefaultLocation ? 10 : 15);
             
             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
                 attribution: "© OpenStreetMap contributors"
-            }).addTo(map);
+            }).addTo(clientViewMap);
             
             // Add marker at location
-            const marker = L.marker([displayLat, displayLng]).addTo(map);
+            const marker = L.marker([displayLat, displayLng]).addTo(clientViewMap);
             
             let popupText = "<strong>' . addslashes($client['name'] ?? '') . '</strong><br>' . addslashes($client['address'] ?? '') . '";
             if (isDefaultLocation) {
@@ -581,7 +581,7 @@ function confirmDelete(clientId, clientName) {
                 
             // Force map to refresh
             setTimeout(() => {
-                map.invalidateSize();
+                clientViewMap.invalidateSize();
                 console.log("Client map size invalidated");
             }, 100);
             
