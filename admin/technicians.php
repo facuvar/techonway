@@ -58,6 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             if ($existingUser) {
+                // Debug adicional para el problema reportado
+                error_log("Email duplicado detectado: " . $technicianData['email'] . " - Usuario existente ID: " . $existingUser['id'] . " - Editando ID: " . ($_POST['technician_id'] ?? 'nuevo'));
                 flash(__('technicians.flash.email_in_use', 'El correo electrónico ya está en uso.'), 'danger');
             } else {
                 // Create or update
@@ -67,9 +69,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         unset($technicianData['password']);
                     }
                     
+                    // Si se está cambiando la contraseña, invalidar sesiones
+                    $passwordChanged = isset($technicianData['password']);
+                    
                     // Update existing technician
                     $db->update('users', $technicianData, 'id = ?', [$_POST['technician_id']]);
-                    flash(__('technicians.flash.updated', 'Técnico actualizado correctamente.'), 'success');
+                    
+                    // Si se cambió la contraseña, invalidar todas las sesiones del usuario
+                    if ($passwordChanged) {
+                        // Invalidar sesiones existentes marcando timestamp
+                        $db->update('users', 
+                            ['session_invalidated_at' => date('Y-m-d H:i:s')], 
+                            'id = ?', 
+                            [$_POST['technician_id']]
+                        );
+                        
+                        flash(__('technicians.flash.updated', 'Técnico actualizado correctamente. IMPORTANTE: Todas las sesiones activas del técnico han sido invalidadas. Debe iniciar sesión nuevamente.'), 'success');
+                        error_log("Contraseña cambiada para técnico ID: " . $_POST['technician_id'] . " - Email: " . $technicianData['email'] . " - Sesiones invalidadas");
+                    } else {
+                        flash(__('technicians.flash.updated', 'Técnico actualizado correctamente.'), 'success');
+                    }
                 } else {
                     // Create new technician
                     $technicianId = $db->insert('users', $technicianData);
