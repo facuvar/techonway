@@ -114,21 +114,10 @@ if (!isset($GLOBALS['extra_css'])) {
 $GLOBALS['extra_css'][] = '<style>
 /* Estilos del calendario TechonWay - CORREGIDO */
 
-/* SOLO botones de navegación del mes */
-a.btn-month-nav, .btn-month-nav {
-    background-color: #505775 !important;
-    color: white !important;
-    padding: 0.5rem 1rem !important;
-    text-decoration: none !important;
-    border-radius: 0.375rem !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    border: none !important;
-    font-weight: 500 !important;
-    transition: all 0.2s ease !important;
-}
-a.btn-month-nav:hover, .btn-month-nav:hover {
+/* Botones de navegación del mes con hover */
+a.btn[style*="#4F5D75"]:hover {
     background-color: #3d4258 !important;
+    border-color: #3d4258 !important;
     color: white !important;
     text-decoration: none !important;
 }
@@ -221,13 +210,13 @@ include_once '../templates/header.php';
                 $nextYear++;
             }
             ?>
-            <a href="?month=<?php echo $prevMonth; ?>&year=<?php echo $prevYear; ?>" class="btn-month-nav me-2">
-                <i class="bi bi-chevron-left"></i> Anterior
-            </a>
-            <span class="fw-bold fs-5 mx-3"><?php echo date('F Y', mktime(0, 0, 0, $month, 1, $year)); ?></span>
-            <a href="?month=<?php echo $nextMonth; ?>&year=<?php echo $nextYear; ?>" class="btn-month-nav ms-2">
-                Siguiente <i class="bi bi-chevron-right"></i>
-            </a>
+                            <a href="?month=<?php echo $prevMonth; ?>&year=<?php echo $prevYear; ?>" class="btn btn-secondary me-2" style="background-color: #4F5D75; border-color: #4F5D75;">
+                    <i class="bi bi-chevron-left"></i> Anterior
+                </a>
+                <span class="fw-bold fs-5 mx-3"><?php echo date('F Y', mktime(0, 0, 0, $month, 1, $year)); ?></span>
+                <a href="?month=<?php echo $nextMonth; ?>&year=<?php echo $nextYear; ?>" class="btn btn-secondary ms-2" style="background-color: #4F5D75; border-color: #4F5D75;">
+                    Siguiente <i class="bi bi-chevron-right"></i>
+                </a>
         </div>
         
         <div>

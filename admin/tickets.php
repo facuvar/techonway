@@ -136,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     "Su cita ha sido reprogramada.\n\nNueva fecha: " . date('d/m/Y', strtotime($scheduledDate)) . "\nNueva hora: " . date('H:i', strtotime($scheduledTime)) . "\nCódigo de seguridad: " . $securityCode :
                                     "Su cita ha sido actualizada.\n\nFecha: " . date('d/m/Y', strtotime($scheduledDate)) . "\nHora: " . date('H:i', strtotime($scheduledTime)) . "\nCódigo de seguridad: " . $securityCode;
                                 
-                                $mailer->send($client['email'], $subject, $emailBody);
+                                $mailer->send($client['email'], $client['name'], $subject, $emailBody);
                                 $message .= ' - Email enviado al cliente';
                             }
                         } catch (Exception $e) {
@@ -162,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $subject = 'Nueva Cita Programada - TechonWay';
                                 $emailBody = "Se ha programado una nueva cita para usted.\n\nFecha: " . date('d/m/Y', strtotime($scheduledDate)) . "\nHora: " . date('H:i', strtotime($scheduledTime)) . "\nCódigo de seguridad: " . $securityCode . "\n\nDescripción: " . $description;
                                 
-                                $mailer->send($client['email'], $subject, $emailBody);
+                                $mailer->send($client['email'], $client['name'], $subject, $emailBody);
                                 $message .= ' - Email enviado al cliente';
                             }
                         } catch (Exception $e) {
