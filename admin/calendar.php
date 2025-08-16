@@ -17,7 +17,9 @@ require_once '../includes/Auth.php';
 
 // Definir constantes esenciales que normalmente están en init.php
 if (!defined('BASE_URL')) {
-    define('BASE_URL', '/');
+    // Detectar si estamos en Railway o en local
+    $isRailway = isset($_SERVER['RAILWAY_ENVIRONMENT']) || strpos($_SERVER['HTTP_HOST'] ?? '', 'railway.app') !== false || strpos($_SERVER['HTTP_HOST'] ?? '', 'techonway.com') !== false;
+    define('BASE_URL', $isRailway ? '/' : '/sistema-techonway/');
 }
 if (!defined('BASE_PATH')) {
     define('BASE_PATH', dirname(__DIR__));

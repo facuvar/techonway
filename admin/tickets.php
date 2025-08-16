@@ -21,7 +21,9 @@ require_once '../includes/Mailer.php';
 require_once '../includes/WhatsAppNotifier.php';
 
 if (!defined('BASE_URL')) {
-    define('BASE_URL', '/');
+    // Detectar si estamos en Railway o en local
+    $isRailway = isset($_SERVER['RAILWAY_ENVIRONMENT']) || strpos($_SERVER['HTTP_HOST'] ?? '', 'railway.app') !== false || strpos($_SERVER['HTTP_HOST'] ?? '', 'techonway.com') !== false;
+    define('BASE_URL', $isRailway ? '/' : '/sistema-techonway/');
 }
 
 if (!defined('BASE_PATH')) {
