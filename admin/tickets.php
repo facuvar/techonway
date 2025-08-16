@@ -255,10 +255,28 @@ try {
     $clients = $db->select("SELECT id, name, business_name, address FROM clients ORDER BY name");
     $technicians = $db->select("SELECT id, name, last_name FROM users WHERE role = 'technician' ORDER BY name");
     
-    if ($action === 'edit' && isset($_GET['id'])) {
+        if ($action === 'edit' && isset($_GET['id'])) {
         $ticket = $db->selectOne("SELECT * FROM tickets WHERE id = ?", [$_GET['id']]);
     }
-    
+
+    if ($action === 'view' && isset($_GET['id'])) {
+        $ticket = $db->selectOne("
+            SELECT t.*, 
+                   c.name as client_name, c.business_name, c.address, c.phone,
+                   c.latitude, c.longitude,
+                   u.name as technician_name, u.last_name as technician_last_name
+            FROM tickets t
+            LEFT JOIN clients c ON t.client_id = c.id
+            LEFT JOIN users u ON t.assigned_to = u.id
+            WHERE t.id = ?
+        ", [$_GET['id']]);
+        
+        if (!$ticket) {
+            $error = 'Ticket no encontrado.';
+            $action = 'list';
+        }
+    }
+
     if ($action === 'list') {
         $tickets = $db->select("
             SELECT t.*, 
@@ -385,10 +403,13 @@ include_once '../templates/header.php';
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
-                                        <a href="?action=edit&id=<?php echo $t['id']; ?>" class="btn btn-outline-primary">
+                                        <a href="?action=view&id=<?php echo $t['id']; ?>" class="btn btn-outline-info" title="Ver">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="?action=edit&id=<?php echo $t['id']; ?>" class="btn btn-outline-primary" title="Editar">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <button type="button" class="btn btn-outline-danger" onclick="confirmDeleteTicket(<?php echo $t['id']; ?>, '<?php echo htmlspecialchars($t['client_name']); ?>')">
+                                        <button type="button" class="btn btn-outline-danger" onclick="confirmDeleteTicket(<?php echo $t['id']; ?>, '<?php echo htmlspecialchars($t['client_name']); ?>')" title="Eliminar">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -515,6 +536,149 @@ include_once '../templates/header.php';
         </div>
     </div>
     <?php endif; ?>
+
+    <!-- Vista de detalle del ticket -->
+    <?php if ($action === 'view' && $ticket): ?>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Detalle del Ticket #<?php echo $ticket['id']; ?></h5>
+            <div>
+                <a href="?action=edit&id=<?php echo $ticket['id']; ?>" class="btn btn-primary btn-sm">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
+                <a href="?action=list" class="btn btn-secondary btn-sm">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <!-- Información del ticket -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">Información del Ticket</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <strong>ID:</strong>
+                                        <p class="mb-0">#<?php echo $ticket['id']; ?></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Estado:</strong>
+                                        <p class="mb-0">
+                                            <span class="badge bg-<?php echo $ticket['status'] === 'pending' ? 'warning' : ($ticket['status'] === 'completed' ? 'success' : 'secondary'); ?>">
+                                                <?php echo ucfirst($ticket['status']); ?>
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Prioridad:</strong>
+                                        <p class="mb-0">
+                                            <span class="badge bg-<?php echo $ticket['priority'] === 'urgent' ? 'danger' : ($ticket['priority'] === 'high' ? 'warning' : ($ticket['priority'] === 'medium' ? 'info' : 'secondary')); ?>">
+                                                <?php echo ucfirst($ticket['priority']); ?>
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <strong>Técnico Asignado:</strong>
+                                        <p class="mb-0">
+                                            <?php echo $ticket['technician_name'] ? escape($ticket['technician_name'] . ' ' . $ticket['technician_last_name']) : 'Sin asignar'; ?>
+                                        </p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Fecha de Creación:</strong>
+                                        <p class="mb-0"><?php echo date('d/m/Y H:i', strtotime($ticket['created_at'])); ?></p>
+                                    </div>
+                                    <?php if ($ticket['scheduled_date'] && $ticket['scheduled_time']): ?>
+                                    <div class="mb-3">
+                                        <strong>Fecha Programada:</strong>
+                                        <p class="mb-0">
+                                            <i class="bi bi-calendar"></i> <?php echo date('d/m/Y', strtotime($ticket['scheduled_date'])); ?>
+                                            <i class="bi bi-clock ms-2"></i> <?php echo date('H:i', strtotime($ticket['scheduled_time'])); ?>
+                                        </p>
+                                    </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <strong>Descripción:</strong>
+                                <p class="mb-0"><?php echo nl2br(escape($ticket['description'])); ?></p>
+                            </div>
+                            
+                            <?php if ($ticket['security_code'] && $ticket['scheduled_date'] && $ticket['scheduled_time']): ?>
+                            <div class="mb-3">
+                                <strong>Código de Seguridad:</strong>
+                                <div class="alert alert-info">
+                                    <i class="bi bi-shield-check"></i> <strong><?php echo $ticket['security_code']; ?></strong>
+                                    <br><small class="text-muted">Este código se envía al cliente por email cuando se programa la cita</small>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <!-- Información del cliente -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">Información del Cliente</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <strong>Nombre:</strong>
+                                <p class="mb-0"><?php echo escape($ticket['client_name']); ?></p>
+                            </div>
+                            
+                            <?php if ($ticket['business_name']): ?>
+                            <div class="mb-3">
+                                <strong>Empresa:</strong>
+                                <p class="mb-0"><?php echo escape($ticket['business_name']); ?></p>
+                            </div>
+                            <?php endif; ?>
+                            
+                            <?php if ($ticket['phone']): ?>
+                            <div class="mb-3">
+                                <strong>Teléfono:</strong>
+                                <p class="mb-0"><?php echo escape($ticket['phone']); ?></p>
+                            </div>
+                            <?php endif; ?>
+                            
+                            <div class="mb-3">
+                                <strong>Dirección:</strong>
+                                <p class="mb-0"><?php echo escape($ticket['address']); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Mapa -->
+                    <?php if ($ticket['latitude'] && $ticket['longitude']): ?>
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">Ubicación</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="ticketMap" style="height: 300px; width: 100%;"></div>
+                            <div class="mt-3">
+                                <a href="https://www.google.com/maps/dir/?api=1&destination=<?php echo $ticket['latitude']; ?>,<?php echo $ticket['longitude']; ?>" 
+                                   class="btn btn-outline-primary w-100" target="_blank">
+                                    <i class="bi bi-map"></i> Abrir en Google Maps
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 </div>
 
 <!-- Modal de confirmación para eliminar ticket -->
@@ -541,10 +705,20 @@ include_once '../templates/header.php';
 </div>
 
 <?php
+// Add Leaflet CSS for the map in view mode
+if (!isset($GLOBALS['extra_css'])) {
+    $GLOBALS['extra_css'] = [];
+}
+if ($action === 'view' && $ticket && $ticket['latitude'] && $ticket['longitude']) {
+    $GLOBALS['extra_css'][] = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>';
+}
+
 // Add extra JS after the template footer
 if (!isset($GLOBALS['extra_js'])) {
     $GLOBALS['extra_js'] = [];
 }
+
+// JavaScript for delete confirmation
 $GLOBALS['extra_js'][] = '<script>
 function confirmDeleteTicket(ticketId, clientName) {
     document.getElementById("ticketClientName").textContent = clientName;
@@ -552,6 +726,34 @@ function confirmDeleteTicket(ticketId, clientName) {
     new bootstrap.Modal(document.getElementById("deleteTicketModal")).show();
 }
 </script>';
+
+// JavaScript for map in view mode
+if ($action === 'view' && $ticket && $ticket['latitude'] && $ticket['longitude']) {
+    $GLOBALS['extra_js'][] = '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>';
+    $GLOBALS['extra_js'][] = '<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Initialize map for ticket view
+    const lat = ' . $ticket['latitude'] . ';
+    const lng = ' . $ticket['longitude'] . ';
+    
+    const map = L.map("ticketMap").setView([lat, lng], 15);
+    
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
+    }).addTo(map);
+    
+    // Add marker at client location
+    L.marker([lat, lng])
+        .addTo(map)
+        .bindPopup("' . escape($ticket['client_name']) . '<br>' . escape($ticket['address']) . '");
+    
+    // Refresh map size when visible
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 100);
+});
+</script>';
+}
 
 // Include footer
 include_once '../templates/footer.php';
