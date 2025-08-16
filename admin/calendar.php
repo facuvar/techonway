@@ -161,7 +161,7 @@ table.calendar-table thead th,
     font-weight: normal;
 }
 
-/* Tabla del calendario (mantener sin fondo blanco) */
+/* Tabla del calendario con filas alternadas */
 .calendar-table {
     background-color: #B9C3C6;
 }
@@ -182,6 +182,19 @@ table.calendar-table thead th,
 .calendar-table .today {
     background-color: #fff3cd;
     border: 2px solid #ffc107;
+}
+
+/* Estilo de filas alternadas para la tabla de resumen */
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+}
+.table-striped tbody tr:nth-of-type(even) {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Filas hover effect */
+.table-striped tbody tr:hover {
+    background-color: rgba(80, 87, 117, 0.1) !important;
 }
 </style>';
 
@@ -332,7 +345,7 @@ include_once '../templates/header.php';
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-sm">
+                <table class="table table-sm table-striped">
                     <thead>
                         <tr>
                             <th>Fecha</th>
