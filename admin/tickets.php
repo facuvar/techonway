@@ -263,24 +263,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header('Location: ?action=list&msg=' . urlencode($message));
                 exit();
         }
-    }
-    
-    if (isset($_POST['delete_ticket'])) {
-            $ticket_id = $_POST['ticket_id'];
-            // Verificar si el ticket existe
-            $ticket = $db->selectOne("SELECT id, client_id FROM tickets WHERE id = ?", [$ticket_id]);
-            if ($ticket) {
-                // Eliminar el ticket
-                $db->query("DELETE FROM tickets WHERE id = ?", [$ticket_id]);
-                $message = 'Ticket eliminado correctamente';
-            } else {
-                $error = 'Ticket no encontrado';
-            }
-            $action = 'list';
-        }
-        
     } catch (Exception $e) {
         $error = 'Error al guardar ticket: ' . $e->getMessage();
+    }
+}
+
+// Manejar eliminación de tickets
+if (isset($_POST['delete_ticket'])) {
+    try {
+        $ticket_id = $_POST['ticket_id'];
+        // Verificar si el ticket existe
+        $ticket = $db->selectOne("SELECT id, client_id FROM tickets WHERE id = ?", [$ticket_id]);
+        if ($ticket) {
+            // Eliminar el ticket
+            $db->query("DELETE FROM tickets WHERE id = ?", [$ticket_id]);
+            flash('Ticket eliminado correctamente', 'success');
+        } else {
+            flash('Ticket no encontrado', 'danger');
+        }
+        // Redirigir para evitar resubmit
+        header('Location: ?action=list');
+        exit();
+    } catch (Exception $e) {
+        flash('Error al eliminar ticket: ' . $e->getMessage(), 'danger');
     }
 }
 
@@ -741,10 +746,10 @@ include_once '../templates/header.php';
                     <input type="hidden" name="ticket_id" id="deleteTicketId">
                     <button type="submit" name="delete_ticket" class="btn btn-danger">Eliminar</button>
                 </form>
-                    </div>
-                </div>
             </div>
         </div>
+    </div>
+</div>
         
 <?php
 // Add Leaflet CSS for the map in view mode
