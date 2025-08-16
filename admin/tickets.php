@@ -151,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
                     ", [$clientId, $assignedTo, $assignedTo, $description, $priority, $scheduledDate, $scheduledTime, $securityCode]);
                     
-                    $ticketId = $db->getPdo()->lastInsertId();
+                    $ticketId = $db->getConnection()->lastInsertId();
                     $message = 'Ticket creado exitosamente';
                     
                     // Enviar email si hay fecha y hora programada
