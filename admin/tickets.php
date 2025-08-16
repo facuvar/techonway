@@ -114,6 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $db->query("
                         UPDATE tickets SET 
                             client_id = ?, 
+                            technician_id = ?,
                             assigned_to = ?, 
                             description = ?, 
                             priority = ?, 
@@ -121,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             scheduled_time = ?,
                             security_code = ?
                         WHERE id = ?
-                    ", [$clientId, $assignedTo, $description, $priority, $scheduledDate, $scheduledTime, $securityCode, $ticketId]);
+                    ", [$clientId, $assignedTo, $assignedTo, $description, $priority, $scheduledDate, $scheduledTime, $securityCode, $ticketId]);
                     
                     $message = 'Ticket actualizado exitosamente';
                     
@@ -146,9 +147,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     // Insert
                     $db->query("
-                        INSERT INTO tickets (client_id, assigned_to, description, priority, scheduled_date, scheduled_time, security_code, status) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')
-                    ", [$clientId, $assignedTo, $description, $priority, $scheduledDate, $scheduledTime, $securityCode]);
+                        INSERT INTO tickets (client_id, technician_id, assigned_to, description, priority, scheduled_date, scheduled_time, security_code, status) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+                    ", [$clientId, $assignedTo, $assignedTo, $description, $priority, $scheduledDate, $scheduledTime, $securityCode]);
                     
                     $ticketId = $db->getPdo()->lastInsertId();
                     $message = 'Ticket creado exitosamente';
