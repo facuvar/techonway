@@ -18,6 +18,7 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
 require_once '../includes/Database.php';
 require_once '../includes/Auth.php';
 require_once '../includes/Mailer.php';
+require_once '../includes/WhatsAppNotifier.php';
 
 if (!defined('BASE_URL')) {
     define('BASE_URL', '/');
@@ -108,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $ticketId = $_POST['ticket_id'];
                     
                     // Obtener datos anteriores para comparar
-                    $oldTicket = $db->selectOne("SELECT scheduled_date, scheduled_time FROM tickets WHERE id = ?", [$ticketId]);
+                    $oldTicket = $db->selectOne("SELECT scheduled_date, scheduled_time, assigned_to FROM tickets WHERE id = ?", [$ticketId]);
                     $isReschedule = ($oldTicket && ($oldTicket['scheduled_date'] != $scheduledDate || $oldTicket['scheduled_time'] != $scheduledTime));
                     
                     $db->query("
@@ -125,6 +126,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ", [$clientId, $assignedTo, $assignedTo, $description, $priority, $scheduledDate, $scheduledTime, $securityCode, $ticketId]);
                     
                     $message = 'Ticket actualizado exitosamente';
+                    
+                    // Enviar WhatsApp al técnico si está asignado (y cambió la asignación)
+                    if ($assignedTo && (!$oldTicket || $oldTicket['assigned_to'] != $assignedTo)) {
+                        try {
+                            $technician = $db->selectOne("SELECT * FROM users WHERE id = ?", [$assignedTo]);
+                            $client = $db->selectOne("SELECT * FROM clients WHERE id = ?", [$clientId]);
+                            $ticketData = [
+                                'id' => $ticketId,
+                                'description' => $description,
+                                'priority' => $priority,
+                                'scheduled_date' => $scheduledDate,
+                                'scheduled_time' => $scheduledTime,
+                                'security_code' => $securityCode
+                            ];
+                            
+                            if ($technician && $technician['phone']) {
+                                $whatsapp = new WhatsAppNotifier();
+                                $whatsapp->sendTicketNotification($technician, $ticketData, $client);
+                                $message .= ' - WhatsApp enviado al técnico';
+                            }
+                        } catch (Exception $e) {
+                            $message .= ' - Error al enviar WhatsApp: ' . $e->getMessage();
+                        }
+                    }
                     
                     // Enviar email si hay fecha y hora programada
                     if ($scheduledDate && $scheduledTime && $securityCode) {
@@ -153,6 +178,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     $ticketId = $db->getConnection()->lastInsertId();
                     $message = 'Ticket creado exitosamente';
+                    
+                    // Enviar WhatsApp al técnico si está asignado
+                    if ($assignedTo) {
+                        try {
+                            $technician = $db->selectOne("SELECT * FROM users WHERE id = ?", [$assignedTo]);
+                            $client = $db->selectOne("SELECT * FROM clients WHERE id = ?", [$clientId]);
+                            $ticketData = [
+                                'id' => $ticketId,
+                                'description' => $description,
+                                'priority' => $priority,
+                                'scheduled_date' => $scheduledDate,
+                                'scheduled_time' => $scheduledTime,
+                                'security_code' => $securityCode
+                            ];
+                            
+                            if ($technician && $technician['phone']) {
+                                $whatsapp = new WhatsAppNotifier();
+                                $whatsapp->sendTicketNotification($technician, $ticketData, $client);
+                                $message .= ' - WhatsApp enviado al técnico';
+                            }
+                        } catch (Exception $e) {
+                            $message .= ' - Error al enviar WhatsApp: ' . $e->getMessage();
+                        }
+                    }
                     
                     // Enviar email si hay fecha y hora programada
                     if ($scheduledDate && $scheduledTime && $securityCode) {
