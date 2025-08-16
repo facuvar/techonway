@@ -836,3 +836,90 @@ document.addEventListener("DOMContentLoaded", function() {
 // Include footer
 include_once '../templates/footer.php';
 ?>
+
+<?php if ($action === 'view' && $ticket): ?>
+<script>
+console.log("🔥 DIRECT TICKET SCRIPT EXECUTING...");
+console.log("Action: <?php echo $action; ?>");
+console.log("Ticket isset: <?php echo isset($ticket) ? 'YES' : 'NO'; ?>");
+
+document.addEventListener("DOMContentLoaded", function() {
+    console.log("🔥 DOM READY - Starting ticket map...");
+    
+    setTimeout(function() {
+        console.log("🔥 TIMEOUT REACHED - Initializing ticket map...");
+        
+        const mapContainer = document.getElementById("ticketMap");
+        console.log("Ticket map container:", mapContainer);
+        
+        if (!mapContainer) {
+            console.error("❌ NO TICKET MAP CONTAINER FOUND!");
+            return;
+        }
+        
+        // Check if Leaflet is loaded
+        if (typeof L === "undefined") {
+            console.error("❌ LEAFLET NOT LOADED!");
+            mapContainer.innerHTML = "<div style='padding: 20px; text-align: center; color: red;'>❌ Leaflet no disponible</div>";
+            return;
+        }
+        
+        console.log("✅ Leaflet is available!");
+        
+        // Ticket coordinates
+        const lat = <?php echo floatval($ticket['latitude'] ?? 0); ?>;
+        const lng = <?php echo floatval($ticket['longitude'] ?? 0); ?>;
+        
+        console.log("Ticket coordinates: lat=" + lat + ", lng=" + lng);
+        
+        // Use default coordinates if needed
+        let displayLat = lat || -34.6118;  // Buenos Aires
+        let displayLng = lng || -58.3960;
+        let isDefault = (lat === 0 || lng === 0 || !lat || !lng);
+        
+        console.log("Final ticket coordinates: lat=" + displayLat + ", lng=" + displayLng + ", isDefault=" + isDefault);
+        
+        try {
+            // Clear container
+            mapContainer.innerHTML = "";
+            
+            // Create map
+            const map = L.map("ticketMap").setView([displayLat, displayLng], isDefault ? 10 : 15);
+            console.log("✅ Ticket map created");
+            
+            // Add tiles
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                attribution: "© OpenStreetMap contributors"
+            }).addTo(map);
+            console.log("✅ Ticket tiles added");
+            
+            // Add marker
+            const marker = L.marker([displayLat, displayLng]).addTo(map);
+            console.log("✅ Ticket marker added");
+            
+            // Add popup
+            let popupText = "<?php echo addslashes($ticket['client_name'] ?? ''); ?><br><?php echo addslashes($ticket['address'] ?? ''); ?>";
+            if (isDefault) {
+                popupText += "<br><small style='color: #dc3545;'>⚠️ Ubicación aproximada</small>";
+            }
+            
+            marker.bindPopup(popupText);
+            console.log("✅ Ticket popup added");
+            
+            // Refresh map
+            setTimeout(() => {
+                map.invalidateSize();
+                console.log("✅ Ticket map refreshed");
+            }, 100);
+            
+            console.log("🎉 TICKET MAP SUCCESS!");
+            
+        } catch (error) {
+            console.error("💥 TICKET ERROR:", error);
+            mapContainer.innerHTML = "<div style='padding: 20px; text-align: center; color: red;'>❌ Error: " + error.message + "</div>";
+        }
+        
+    }, 3000); // 3 second delay
+});
+</script>
+<?php endif; ?>

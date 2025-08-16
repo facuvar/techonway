@@ -603,3 +603,90 @@ function confirmDelete(clientId, clientName) {
 // Include footer
 include_once '../templates/footer.php';
 ?>
+
+<?php if ($action === 'view' && isset($client)): ?>
+<script>
+console.log("🔥 DIRECT CLIENT SCRIPT EXECUTING...");
+console.log("Action: <?php echo $action; ?>");
+console.log("Client isset: <?php echo isset($client) ? 'YES' : 'NO'; ?>");
+
+document.addEventListener("DOMContentLoaded", function() {
+    console.log("🔥 DOM READY - Starting client map...");
+    
+    setTimeout(function() {
+        console.log("🔥 TIMEOUT REACHED - Initializing map...");
+        
+        const mapContainer = document.getElementById("map");
+        console.log("Map container:", mapContainer);
+        
+        if (!mapContainer) {
+            console.error("❌ NO MAP CONTAINER FOUND!");
+            return;
+        }
+        
+        // Check if Leaflet is loaded
+        if (typeof L === "undefined") {
+            console.error("❌ LEAFLET NOT LOADED!");
+            mapContainer.innerHTML = "<div style='padding: 20px; text-align: center; color: red;'>❌ Leaflet no disponible</div>";
+            return;
+        }
+        
+        console.log("✅ Leaflet is available!");
+        
+        // Client coordinates
+        const lat = <?php echo floatval($client['latitude'] ?? 0); ?>;
+        const lng = <?php echo floatval($client['longitude'] ?? 0); ?>;
+        
+        console.log("Coordinates: lat=" + lat + ", lng=" + lng);
+        
+        // Use default coordinates if needed
+        let displayLat = lat || -34.6118;  // Buenos Aires
+        let displayLng = lng || -58.3960;
+        let isDefault = (lat === 0 || lng === 0 || !lat || !lng);
+        
+        console.log("Final coordinates: lat=" + displayLat + ", lng=" + displayLng + ", isDefault=" + isDefault);
+        
+        try {
+            // Clear container
+            mapContainer.innerHTML = "";
+            
+            // Create map
+            const map = L.map("map").setView([displayLat, displayLng], isDefault ? 10 : 15);
+            console.log("✅ Map created");
+            
+            // Add tiles
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                attribution: "© OpenStreetMap contributors"
+            }).addTo(map);
+            console.log("✅ Tiles added");
+            
+            // Add marker
+            const marker = L.marker([displayLat, displayLng]).addTo(map);
+            console.log("✅ Marker added");
+            
+            // Add popup
+            let popupText = "<strong><?php echo addslashes($client['name'] ?? ''); ?></strong><br><?php echo addslashes($client['address'] ?? ''); ?>";
+            if (isDefault) {
+                popupText += "<br><small style='color: #dc3545;'>⚠️ Ubicación aproximada</small>";
+            }
+            
+            marker.bindPopup(popupText).openPopup();
+            console.log("✅ Popup added");
+            
+            // Refresh map
+            setTimeout(() => {
+                map.invalidateSize();
+                console.log("✅ Map refreshed");
+            }, 100);
+            
+            console.log("🎉 CLIENT MAP SUCCESS!");
+            
+        } catch (error) {
+            console.error("💥 ERROR:", error);
+            mapContainer.innerHTML = "<div style='padding: 20px; text-align: center; color: red;'>❌ Error: " + error.message + "</div>";
+        }
+        
+    }, 3000); // 3 second delay
+});
+</script>
+<?php endif; ?>
