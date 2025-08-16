@@ -324,7 +324,11 @@ include_once '../templates/header.php';
                             <?php if ($client['latitude'] && $client['longitude']): ?>
                             <div class="mt-3">
                                 <h6>Mapa</h6>
-                                <div id="map" style="height: 200px; border-radius: 8px;"></div>
+                                <div id="map" style="height: 200px; border-radius: 8px; background-color: #f8f9fa; border: 1px solid #dee2e6; position: relative;">
+                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #6c757d;">
+                                        Cargando mapa...
+                                    </div>
+                                </div>
                             </div>
                             <?php endif; ?>
                         </div>
@@ -513,12 +517,9 @@ function confirmDelete(clientId, clientName) {
 
 // Inicializar mapa si existe
 ' . ($action === 'view' && isset($client) ? 
-'document.addEventListener("DOMContentLoaded", function() {
-    function initClientMap() {
-        if (typeof L === "undefined") {
-            setTimeout(initClientMap, 500);
-            return;
-        }
+'window.addEventListener("load", function() {
+    setTimeout(function() {
+        console.log("Starting client map initialization...");
         
         const mapContainer = document.getElementById("map");
         if (!mapContainer) {
@@ -526,11 +527,21 @@ function confirmDelete(clientId, clientName) {
             return;
         }
         
+        console.log("Client map container found:", mapContainer);
+        
+        if (typeof L === "undefined") {
+            console.error("Leaflet not loaded for client map");
+            mapContainer.innerHTML = "<div class=\"alert alert-warning\">Error: Leaflet no se pudo cargar</div>";
+            return;
+        }
+        
+        console.log("Leaflet loaded successfully for client map");
+        
         // Coordenadas del cliente
         const lat = ' . floatval($client['latitude'] ?? 0) . ';
         const lng = ' . floatval($client['longitude'] ?? 0) . ';
         
-        console.log("Initializing client map with coordinates:", lat, lng);
+        console.log("Client coordinates from PHP:", lat, lng);
         
         // Si no hay coordenadas válidas, usar coordenadas por defecto de Buenos Aires
         let displayLat = lat;
@@ -544,7 +555,12 @@ function confirmDelete(clientId, clientName) {
             console.log("Using default coordinates for Buenos Aires");
         }
         
+        console.log("Final client coordinates:", displayLat, displayLng);
+        
         try {
+            // Clear loading message
+            mapContainer.innerHTML = "";
+            
             const map = L.map("map").setView([displayLat, displayLng], isDefaultLocation ? 10 : 15);
             
             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -552,30 +568,27 @@ function confirmDelete(clientId, clientName) {
             }).addTo(map);
             
             // Add marker at location
-            let popupText = "<strong>' . addslashes(htmlspecialchars($client['name'] ?? '')) . '</strong><br>' . addslashes(htmlspecialchars($client['address'] ?? '')) . '";
+            const marker = L.marker([displayLat, displayLng]).addTo(map);
+            
+            let popupText = "<strong>' . addslashes($client['name'] ?? '') . '</strong><br>' . addslashes($client['address'] ?? '') . '";
             if (isDefaultLocation) {
-                popupText += "<br><small style=\"color: #dc3545;\">⚠️ Ubicación aproximada - Sin coordenadas específicas</small>";
+                popupText += "<br><small style=\"color: #dc3545;\">⚠️ Ubicación aproximada</small>";
             }
             
-            L.marker([displayLat, displayLng])
-                .addTo(map)
-                .bindPopup(popupText)
-                .openPopup();
+            marker.bindPopup(popupText).openPopup();
                 
-            // Refresh map size when visible
+            // Force map to refresh
             setTimeout(() => {
                 map.invalidateSize();
-            }, 500);
+                console.log("Client map size invalidated");
+            }, 100);
             
-            console.log("Client map initialized successfully");
+            console.log("Client map initialized successfully!");
         } catch (error) {
             console.error("Error initializing client map:", error);
-            mapContainer.innerHTML = "<div class=\"alert alert-danger\">Error al cargar el mapa</div>";
+            mapContainer.innerHTML = "<div class=\"alert alert-danger\">Error: " + error.message + "</div>";
         }
-    }
-    
-    // Start initialization
-    initClientMap();
+    }, 1000);
 });' : '') . '
 </script>';
 

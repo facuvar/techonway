@@ -664,7 +664,11 @@ include_once '../templates/header.php';
                             <h6 class="card-title mb-0">Ubicación</h6>
                         </div>
                         <div class="card-body">
-                            <div id="ticketMap" style="height: 300px; width: 100%;"></div>
+                            <div id="ticketMap" style="height: 300px; width: 100%; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 0.375rem; position: relative;">
+                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #6c757d;">
+                                    Cargando mapa...
+                                </div>
+                            </div>
                             <div class="mt-3">
                                 <a href="https://www.google.com/maps/dir/?api=1&destination=<?php echo $ticket['latitude']; ?>,<?php echo $ticket['longitude']; ?>" 
                                    class="btn btn-outline-primary w-100" target="_blank">
@@ -742,27 +746,33 @@ function confirmDeleteTicket(ticketId, clientName) {
 
 // JavaScript for map in view mode
 if ($action === 'view' && $ticket) {
-    $GLOBALS['extra_js'][] = '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>';
+    $GLOBALS['extra_js'][] = '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>';
     $GLOBALS['extra_js'][] = '<script>
-document.addEventListener("DOMContentLoaded", function() {
-    // Wait for Leaflet to load
-    function initMap() {
-        if (typeof L === "undefined") {
-            setTimeout(initMap, 500);
-            return;
-        }
+window.addEventListener("load", function() {
+    setTimeout(function() {
+        console.log("Starting map initialization...");
         
         const mapContainer = document.getElementById("ticketMap");
         if (!mapContainer) {
-            console.error("Map container not found");
+            console.error("Map container ticketMap not found");
             return;
         }
         
-        // Initialize map for ticket view
-        const lat = ' . floatval($ticket['latitude']) . ';
-        const lng = ' . floatval($ticket['longitude']) . ';
+        console.log("Map container found:", mapContainer);
         
-        console.log("Initializing map with coordinates:", lat, lng);
+        if (typeof L === "undefined") {
+            console.error("Leaflet not loaded");
+            mapContainer.innerHTML = "<div class=\"alert alert-warning\">Error: Leaflet no se pudo cargar</div>";
+            return;
+        }
+        
+        console.log("Leaflet loaded successfully");
+        
+        // Initialize map for ticket view
+        const lat = ' . floatval($ticket['latitude'] ?? 0) . ';
+        const lng = ' . floatval($ticket['longitude'] ?? 0) . ';
+        
+        console.log("Coordinates from PHP:", lat, lng);
         
         // Si no hay coordenadas válidas, usar coordenadas por defecto de Buenos Aires
         let displayLat = lat;
@@ -776,37 +786,40 @@ document.addEventListener("DOMContentLoaded", function() {
             console.log("Using default coordinates for Buenos Aires");
         }
         
+        console.log("Final coordinates:", displayLat, displayLng);
+        
         try {
+            // Clear loading message
+            mapContainer.innerHTML = "";
+            
             const map = L.map("ticketMap").setView([displayLat, displayLng], isDefaultLocation ? 10 : 15);
             
             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
+                attribution: "&copy; OpenStreetMap contributors"
             }).addTo(map);
             
             // Add marker at location
-            let popupText = "' . addslashes(escape($ticket['client_name'])) . '<br>' . addslashes(escape($ticket['address'])) . '";
+            const marker = L.marker([displayLat, displayLng]).addTo(map);
+            
+            let popupText = "' . addslashes($ticket['client_name'] ?? '') . '<br>' . addslashes($ticket['address'] ?? '') . '";
             if (isDefaultLocation) {
-                popupText += "<br><small style=\"color: #dc3545;\">⚠️ Ubicación aproximada - Sin coordenadas específicas</small>";
+                popupText += "<br><small style=\"color: #dc3545;\">⚠️ Ubicación aproximada</small>";
             }
             
-            L.marker([displayLat, displayLng])
-                .addTo(map)
-                .bindPopup(popupText);
+            marker.bindPopup(popupText);
             
-            // Refresh map size when visible
+            // Force map to refresh
             setTimeout(() => {
                 map.invalidateSize();
-            }, 500);
+                console.log("Map size invalidated");
+            }, 100);
             
-            console.log("Map initialized successfully");
+            console.log("Map initialized successfully!");
         } catch (error) {
             console.error("Error initializing map:", error);
-            mapContainer.innerHTML = "<div class=\"alert alert-danger\">Error al cargar el mapa</div>";
+            mapContainer.innerHTML = "<div class=\"alert alert-danger\">Error: " + error.message + "</div>";
         }
-    }
-    
-    // Start initialization
-    initMap();
+    }, 1000);
 });
 </script>';
 }
