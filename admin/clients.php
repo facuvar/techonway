@@ -323,7 +323,6 @@ include_once '../templates/header.php';
                                 </tr>
                             </table>
                             
-                            <?php if ($client['latitude'] && $client['longitude']): ?>
                             <div class="mt-3">
                                 <h6>Mapa</h6>
                                 <div id="map" style="height: 200px; border-radius: 8px; background-color: #f8f9fa; border: 1px solid #dee2e6; position: relative;">
@@ -332,7 +331,6 @@ include_once '../templates/header.php';
                                     </div>
                                 </div>
                             </div>
-                            <?php endif; ?>
                         </div>
                     </div>
                     
@@ -519,31 +517,33 @@ function confirmDelete(clientId, clientName) {
 
 // Inicializar mapa si existe
 ' . ($action === 'view' && isset($client) ? 
-'window.addEventListener("load", function() {
+'document.addEventListener("DOMContentLoaded", function() {
     setTimeout(function() {
-        console.log("Starting client map initialization...");
+        console.log("=== CLIENT MAP DEBUG START ===");
         
         const mapContainer = document.getElementById("map");
+        console.log("Client map container search result:", mapContainer);
+        
         if (!mapContainer) {
-            console.error("Map container not found");
+            console.error("FATAL: Client map container not found");
             return;
         }
         
-        console.log("Client map container found:", mapContainer);
+        console.log("✓ Client map container found successfully");
         
         if (typeof L === "undefined") {
-            console.error("Leaflet not loaded for client map");
-            mapContainer.innerHTML = "<div class=\"alert alert-warning\">Error: Leaflet no se pudo cargar</div>";
+            console.error("FATAL: Leaflet not loaded for client map");
+            mapContainer.innerHTML = "<div style=\"padding: 20px; text-align: center; color: red;\">❌ Error: Leaflet no se pudo cargar</div>";
             return;
         }
         
-        console.log("Leaflet loaded successfully for client map");
+        console.log("✓ Leaflet is available for client map");
         
         // Coordenadas del cliente
         const lat = ' . floatval($client['latitude'] ?? 0) . ';
         const lng = ' . floatval($client['longitude'] ?? 0) . ';
         
-        console.log("Client coordinates from PHP:", lat, lng);
+        console.log("Client coordinates from PHP: lat=" + lat + ", lng=" + lng);
         
         // Si no hay coordenadas válidas, usar coordenadas por defecto de Buenos Aires
         let displayLat = lat;
@@ -554,23 +554,27 @@ function confirmDelete(clientId, clientName) {
             displayLat = -34.6118;  // Buenos Aires
             displayLng = -58.3960;
             isDefaultLocation = true;
-            console.log("Using default coordinates for Buenos Aires");
+            console.log("Using default Buenos Aires coordinates");
         }
         
-        console.log("Final client coordinates:", displayLat, displayLng);
+        console.log("Final client coordinates: lat=" + displayLat + ", lng=" + displayLng + ", isDefault=" + isDefaultLocation);
         
         try {
-            // Clear loading message
+            console.log("Clearing loading message and creating client map...");
             mapContainer.innerHTML = "";
             
             const clientViewMap = L.map("map").setView([displayLat, displayLng], isDefaultLocation ? 10 : 15);
+            console.log("✓ Client map object created");
             
             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                attribution: "© OpenStreetMap contributors"
+                attribution: "© OpenStreetMap contributors",
+                maxZoom: 18
             }).addTo(clientViewMap);
+            console.log("✓ Client tile layer added");
             
             // Add marker at location
             const marker = L.marker([displayLat, displayLng]).addTo(clientViewMap);
+            console.log("✓ Client marker added");
             
             let popupText = "<strong>' . addslashes($client['name'] ?? '') . '</strong><br>' . addslashes($client['address'] ?? '') . '";
             if (isDefaultLocation) {
@@ -578,19 +582,21 @@ function confirmDelete(clientId, clientName) {
             }
             
             marker.bindPopup(popupText).openPopup();
+            console.log("✓ Client popup bound and opened");
                 
             // Force map to refresh
             setTimeout(() => {
                 clientViewMap.invalidateSize();
-                console.log("Client map size invalidated");
-            }, 100);
+                console.log("✓ Client map size invalidated");
+            }, 200);
             
-            console.log("Client map initialized successfully!");
+            console.log("🎉 CLIENT MAP INITIALIZED SUCCESSFULLY!");
+            console.log("=== CLIENT MAP DEBUG END ===");
         } catch (error) {
-            console.error("Error initializing client map:", error);
-            mapContainer.innerHTML = "<div class=\"alert alert-danger\">Error: " + error.message + "</div>";
+            console.error("💥 FATAL ERROR initializing client map:", error);
+            mapContainer.innerHTML = "<div style=\"padding: 20px; text-align: center; color: red;\">❌ Error: " + error.message + "</div>";
         }
-    }, 1000);
+    }, 2000);
 });' : '') . '
 </script>';
 
