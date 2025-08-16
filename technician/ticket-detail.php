@@ -67,8 +67,11 @@ include_once '../templates/header.php';
                 <i class="bi bi-arrow-left"></i> Volver
             </a>
             <?php if (!$activeVisit && $ticket['status'] !== 'completed' && $ticket['status'] !== 'not_completed'): ?>
-                <a href="scan_qr.php?action=<?php echo ($ticket['status'] === 'in_progress') ? 'end' : 'start'; ?>&ticket_id=<?php echo $ticket['id']; ?>" class="btn btn-primary">
-                    <i class="bi bi-qr-code-scan"></i> Escanear QR en Ascensor
+                <a href="scan_qr.php?action=<?php echo ($ticket['status'] === 'in_progress') ? 'end' : 'start'; ?>&ticket_id=<?php echo $ticket['id']; ?>" class="btn btn-primary me-2">
+                    <i class="bi bi-qr-code-scan"></i> Escanear QR
+                </a>
+                <a href="start_visit.php?ticket_id=<?php echo $ticket['id']; ?>" class="btn btn-success">
+                    <i class="bi bi-play-circle"></i> Iniciar Visita Sin QR
                 </a>
             <?php elseif ($activeVisit): ?>
                 <a href="active_visit.php?id=<?php echo $activeVisit['id']; ?>" class="btn btn-info">
@@ -237,15 +240,21 @@ include_once '../templates/header.php';
                     <div class="alert alert-info">
                         <i class="bi bi-info-circle"></i> Para iniciar o finalizar una visita:
                         <ol class="mb-0 mt-2">
-                            <li>Diríjase a la ubicación del ascensor</li>
-                            <li>Escanee el código QR que está físicamente pegado en el ascensor</li>
+                            <li>Diríjase a la ubicación del QR (si es que hay)</li>
+                            <li>Escanee el código QR</li>
                             <li>El sistema verificará que usted se encuentra dentro del rango permitido (50 metros)</li>
                             <li>Complete la información solicitada para iniciar o finalizar la visita</li>
+                            <li>O inicie la visita con el botón Iniciar Visita</li>
                         </ol>
                     </div>
-                    <a href="scan_qr.php?action=<?php echo ($ticket['status'] === 'in_progress') ? 'end' : 'start'; ?>&ticket_id=<?php echo $ticket['id']; ?>" class="btn btn-primary w-100">
-                        <i class="bi bi-qr-code-scan"></i> Escanear Código QR en Ascensor
-                    </a>
+                    <div class="d-grid gap-2">
+                        <a href="scan_qr.php?action=<?php echo ($ticket['status'] === 'in_progress') ? 'end' : 'start'; ?>&ticket_id=<?php echo $ticket['id']; ?>" class="btn btn-primary">
+                            <i class="bi bi-qr-code-scan"></i> Escanear QR
+                        </a>
+                        <a href="start_visit.php?ticket_id=<?php echo $ticket['id']; ?>" class="btn btn-success">
+                            <i class="bi bi-play-circle"></i> Iniciar Visita Sin QR
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
