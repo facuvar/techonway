@@ -515,89 +515,7 @@ function confirmDelete(clientId, clientName) {
     new bootstrap.Modal(document.getElementById("deleteModal")).show();
 }
 
-// Inicializar mapa si existe
-' . ($action === 'view' && isset($client) ? 
-'document.addEventListener("DOMContentLoaded", function() {
-    setTimeout(function() {
-        console.log("=== CLIENT MAP DEBUG START ===");
-        
-        const mapContainer = document.getElementById("map");
-        console.log("Client map container search result:", mapContainer);
-        
-        if (!mapContainer) {
-            console.error("FATAL: Client map container not found");
-            return;
-        }
-        
-        console.log("✓ Client map container found successfully");
-        
-        if (typeof L === "undefined") {
-            console.error("FATAL: Leaflet not loaded for client map");
-            mapContainer.innerHTML = "<div style=\"padding: 20px; text-align: center; color: red;\">❌ Error: Leaflet no se pudo cargar</div>";
-            return;
-        }
-        
-        console.log("✓ Leaflet is available for client map");
-        
-        // Coordenadas del cliente
-        const lat = ' . floatval($client['latitude'] ?? 0) . ';
-        const lng = ' . floatval($client['longitude'] ?? 0) . ';
-        
-        console.log("Client coordinates from PHP: lat=" + lat + ", lng=" + lng);
-        
-        // Si no hay coordenadas válidas, usar coordenadas por defecto de Buenos Aires
-        let displayLat = lat;
-        let displayLng = lng;
-        let isDefaultLocation = false;
-        
-        if (!lat || !lng || lat === 0 || lng === 0) {
-            displayLat = -34.6118;  // Buenos Aires
-            displayLng = -58.3960;
-            isDefaultLocation = true;
-            console.log("Using default Buenos Aires coordinates");
-        }
-        
-        console.log("Final client coordinates: lat=" + displayLat + ", lng=" + displayLng + ", isDefault=" + isDefaultLocation);
-        
-        try {
-            console.log("Clearing loading message and creating client map...");
-            mapContainer.innerHTML = "";
-            
-            const clientViewMap = L.map("map").setView([displayLat, displayLng], isDefaultLocation ? 10 : 15);
-            console.log("✓ Client map object created");
-            
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                attribution: "© OpenStreetMap contributors",
-                maxZoom: 18
-            }).addTo(clientViewMap);
-            console.log("✓ Client tile layer added");
-            
-            // Add marker at location
-            const marker = L.marker([displayLat, displayLng]).addTo(clientViewMap);
-            console.log("✓ Client marker added");
-            
-            let popupText = "<strong>' . addslashes($client['name'] ?? '') . '</strong><br>' . addslashes($client['address'] ?? '') . '";
-            if (isDefaultLocation) {
-                popupText += "<br><small style=\"color: #dc3545;\">⚠️ Ubicación aproximada</small>";
-            }
-            
-            marker.bindPopup(popupText).openPopup();
-            console.log("✓ Client popup bound and opened");
-                
-            // Force map to refresh
-            setTimeout(() => {
-                clientViewMap.invalidateSize();
-                console.log("✓ Client map size invalidated");
-            }, 200);
-            
-            console.log("🎉 CLIENT MAP INITIALIZED SUCCESSFULLY!");
-            console.log("=== CLIENT MAP DEBUG END ===");
-        } catch (error) {
-            console.error("💥 FATAL ERROR initializing client map:", error);
-            mapContainer.innerHTML = "<div style=\"padding: 20px; text-align: center; color: red;\">❌ Error: " + error.message + "</div>";
-        }
-    }, 2000);
-});' : '') . '
+// Map script is now handled directly below - no extra_js needed
 </script>';
 
 // Include footer
@@ -647,8 +565,14 @@ document.addEventListener("DOMContentLoaded", function() {
         console.log("Final coordinates: lat=" + displayLat + ", lng=" + displayLng + ", isDefault=" + isDefault);
         
         try {
-            // Clear container
+            // Clear container and remove any existing map
             mapContainer.innerHTML = "";
+            
+            // Remove map if it already exists
+            if (mapContainer._leaflet_id) {
+                console.log("⚠️ Removing existing map instance");
+                mapContainer._leaflet_id = undefined;
+            }
             
             // Create map
             const map = L.map("map").setView([displayLat, displayLng], isDefault ? 10 : 15);

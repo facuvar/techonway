@@ -746,92 +746,7 @@ function confirmDeleteTicket(ticketId, clientName) {
 }
 </script>';
 
-// JavaScript for map in view mode
-if ($action === 'view' && $ticket) {
-    $GLOBALS['extra_js'][] = '<script>
-document.addEventListener("DOMContentLoaded", function() {
-    setTimeout(function() {
-        console.log("=== TICKET MAP DEBUG START ===");
-        
-        const mapContainer = document.getElementById("ticketMap");
-        console.log("Map container search result:", mapContainer);
-        
-        if (!mapContainer) {
-            console.error("FATAL: Map container ticketMap not found");
-            return;
-        }
-        
-        console.log("✓ Map container found successfully");
-        
-        if (typeof L === "undefined") {
-            console.error("FATAL: Leaflet not loaded");
-            mapContainer.innerHTML = "<div style=\"padding: 20px; text-align: center; color: red;\">❌ Error: Leaflet no se pudo cargar</div>";
-            return;
-        }
-        
-        console.log("✓ Leaflet is available");
-        
-        // Initialize map for ticket view
-        const lat = ' . floatval($ticket['latitude'] ?? 0) . ';
-        const lng = ' . floatval($ticket['longitude'] ?? 0) . ';
-        
-        console.log("Coordinates from PHP: lat=" + lat + ", lng=" + lng);
-        
-        // Si no hay coordenadas válidas, usar coordenadas por defecto de Buenos Aires
-        let displayLat = lat;
-        let displayLng = lng;
-        let isDefaultLocation = false;
-        
-        if (!lat || !lng || lat === 0 || lng === 0) {
-            displayLat = -34.6118;  // Buenos Aires
-            displayLng = -58.3960;
-            isDefaultLocation = true;
-            console.log("Using default Buenos Aires coordinates");
-        }
-        
-        console.log("Final coordinates: lat=" + displayLat + ", lng=" + displayLng + ", isDefault=" + isDefaultLocation);
-        
-        try {
-            console.log("Clearing loading message and creating map...");
-            mapContainer.innerHTML = "";
-            
-            const ticketViewMap = L.map("ticketMap").setView([displayLat, displayLng], isDefaultLocation ? 10 : 15);
-            console.log("✓ Map object created");
-            
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                attribution: "&copy; OpenStreetMap contributors",
-                maxZoom: 18
-            }).addTo(ticketViewMap);
-            console.log("✓ Tile layer added");
-            
-            // Add marker at location
-            const marker = L.marker([displayLat, displayLng]).addTo(ticketViewMap);
-            console.log("✓ Marker added");
-            
-            let popupText = "' . addslashes($ticket['client_name'] ?? '') . '<br>' . addslashes($ticket['address'] ?? '') . '";
-            if (isDefaultLocation) {
-                popupText += "<br><small style=\"color: #dc3545;\">⚠️ Ubicación aproximada</small>";
-            }
-            
-            marker.bindPopup(popupText);
-            console.log("✓ Popup bound to marker");
-            
-            // Force map to refresh
-            setTimeout(() => {
-                ticketViewMap.invalidateSize();
-                console.log("✓ Map size invalidated");
-            }, 200);
-            
-            console.log("🎉 TICKET MAP INITIALIZED SUCCESSFULLY!");
-            console.log("=== TICKET MAP DEBUG END ===");
-        } catch (error) {
-            console.error("💥 FATAL ERROR initializing ticket map:", error);
-            mapContainer.innerHTML = "<div style=\"padding: 20px; text-align: center; color: red;\">❌ Error: " + error.message + "</div>";
-        }
-    }, 2000);
-});
-</script>';
-}
+// Map script is now handled directly below - no extra_js needed
 
 // Include footer
 include_once '../templates/footer.php';
@@ -880,8 +795,14 @@ document.addEventListener("DOMContentLoaded", function() {
         console.log("Final ticket coordinates: lat=" + displayLat + ", lng=" + displayLng + ", isDefault=" + isDefault);
         
         try {
-            // Clear container
+            // Clear container and remove any existing map
             mapContainer.innerHTML = "";
+            
+            // Remove map if it already exists
+            if (mapContainer._leaflet_id) {
+                console.log("⚠️ Removing existing ticket map instance");
+                mapContainer._leaflet_id = undefined;
+            }
             
             // Create map
             const map = L.map("ticketMap").setView([displayLat, displayLng], isDefault ? 10 : 15);
