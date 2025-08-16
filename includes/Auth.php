@@ -80,7 +80,6 @@ class Auth {
         $_SESSION['user_name'] = $user['name'];
         $_SESSION['user_email'] = $user['email'];
         $_SESSION['user_role'] = $user['role'];
-        $_SESSION['login_time'] = date('Y-m-d H:i:s'); // Añadir timestamp de login
         
         if ($user['role'] === 'technician') {
             $_SESSION['user_zone'] = $user['zone'];
@@ -92,40 +91,7 @@ class Auth {
             session_start();
         }
         
-        if (!isset($_SESSION['user_id'])) {
-            return false;
-        }
-        
-        // Verificar si la sesión fue invalidada
-        return $this->isSessionValid($_SESSION['user_id'], $_SESSION['login_time'] ?? null);
-    }
-    
-    /**
-     * Verificar si la sesión actual es válida (no fue invalidada por cambio de contraseña)
-     */
-    public function isSessionValid($userId, $loginTime) {
-        if (!$loginTime) {
-            return false; // Sin timestamp de login, sesión inválida
-        }
-        
-        $user = $this->db->selectOne(
-            "SELECT session_invalidated_at FROM users WHERE id = ?", 
-            [$userId]
-        );
-        
-        if ($user && $user['session_invalidated_at']) {
-            $invalidatedAt = strtotime($user['session_invalidated_at']);
-            $loginTimestamp = strtotime($loginTime);
-            
-            // Si la sesión fue invalidada después del login, la sesión es inválida
-            if ($invalidatedAt > $loginTimestamp) {
-                // Limpiar sesión inválida
-                $this->logout();
-                return false;
-            }
-        }
-        
-        return true; // Sesión válida
+        return isset($_SESSION['user_id']);
     }
     
     public function isAdmin() {
