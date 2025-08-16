@@ -249,7 +249,7 @@ include_once '../templates/header.php';
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered calendar-table">
+                <table class="table table-bordered calendar-table  table table-striped">
                     <thead>
                         <tr>
                             <th>Domingo</th><th>Lunes</th><th>Martes</th><th>Miércoles</th><th>Jueves</th><th>Viernes</th><th>Sábado</th>
