@@ -44,7 +44,7 @@ $activeVisit = $db->selectOne("
 
 if ($activeVisit) {
     flash('Ya existe una visita activa para este ticket.', 'warning');
-    redirect('active_visit.php?id=' . $activeVisit['id']);
+    redirect('/technician/active_visit.php?id=' . $activeVisit['id']);
 }
 
 // Handle form submission
@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ], 'id = ?', [$ticketId]);
         
         flash('Visita iniciada correctamente sin verificación QR.', 'success');
-        redirect('active_visit.php?id=' . $visitId);
+        redirect('/technician/active_visit.php?id=' . $visitId);
         
     } catch (Exception $e) {
         flash('Error al iniciar la visita: ' . $e->getMessage(), 'danger');
