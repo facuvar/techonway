@@ -259,9 +259,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             
-                // Redirigir para evitar resubmit
-                header('Location: ?action=list&msg=' . urlencode($message));
-                exit();
+            // Redirigir para evitar resubmit
+            header('Location: ?action=list&msg=' . urlencode($message));
+            exit();
         }
     } catch (Exception $e) {
         $error = 'Error al guardar ticket: ' . $e->getMessage();
