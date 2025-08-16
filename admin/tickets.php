@@ -185,7 +185,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
             } else {
-                    // Insert
+                    // Insert - Para tickets nuevos, $oldTicket es null
+                    $oldTicket = null;
+                    
                     $db->query("
                         INSERT INTO tickets (client_id, technician_id, assigned_to, description, priority, scheduled_date, scheduled_time, security_code, status) 
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
@@ -213,7 +215,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $whatsapp->sendTicketNotification($technician, $ticketData, $client);
                                 
                                 // Determinar tipo de notificación
-                                if (!$oldTicket || $oldTicket['assigned_to'] != $assignedTo) {
+                                if (!$oldTicket) {
+                                    // Ticket nuevo - siempre es asignación
+                                    $message .= ' - WhatsApp enviado al técnico (nuevo ticket)';
+                                } elseif ($oldTicket['assigned_to'] != $assignedTo) {
                                     $message .= ' - WhatsApp enviado al técnico (asignación)';
                                 } elseif ($oldTicket['scheduled_date'] != $scheduledDate || $oldTicket['scheduled_time'] != $scheduledTime) {
                                     $message .= ' - WhatsApp enviado al técnico (reprogramación)';
