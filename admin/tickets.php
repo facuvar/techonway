@@ -94,13 +94,13 @@ $error = '';
 // Procesar formularios
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-    if (isset($_POST['save_ticket'])) {
+        if (isset($_POST['save_ticket'])) {
             $clientId = $_POST['client_id'] ?? null;
             $assignedTo = $_POST['assigned_to'] ?? null;
             $description = $_POST['description'] ?? '';
             $priority = $_POST['priority'] ?? 'medium';
-        $scheduledDate = !empty($_POST['scheduled_date']) ? $_POST['scheduled_date'] : null;
-        $scheduledTime = !empty($_POST['scheduled_time']) ? $_POST['scheduled_time'] : null;
+            $scheduledDate = !empty($_POST['scheduled_date']) ? $_POST['scheduled_date'] : null;
+            $scheduledTime = !empty($_POST['scheduled_time']) ? $_POST['scheduled_time'] : null;
             $securityCode = ($scheduledDate && $scheduledTime) ? generateSecurityCode() : null;
             
             if (empty($clientId) || empty($description)) {
@@ -262,6 +262,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Redirigir para evitar resubmit
             header('Location: ?action=list&msg=' . urlencode($message));
             exit();
+            }
         }
     } catch (Exception $e) {
         $error = 'Error al guardar ticket: ' . $e->getMessage();
