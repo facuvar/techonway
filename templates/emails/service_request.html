@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Solicitud de Servicio - TechonWay</title>
+    <style>
+        /* Reset styles */
+        body, table, td, p, a, li, blockquote {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        table, td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+        img {
+            -ms-interpolation-mode: bicubic;
+        }
+
+        /* Global styles */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        /* Container */
+        .email-container {
+            max-width: 650px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            padding: 40px 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .logo {
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+            text-decoration: none;
+        }
+
+        .header-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 18px;
+            margin: 0;
+            font-weight: 300;
+        }
+
+        /* Content */
+        .content {
+            padding: 40px 30px;
+            background-color: #ffffff;
+        }
+
+        .alert-section {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(237, 137, 54, 0.3);
+        }
+
+        .alert-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+        }
+
+        .alert-text {
+            font-size: 16px;
+            margin: 0;
+            opacity: 0.95;
+        }
+
+        /* Info boxes */
+        .info-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .info-card h3 {
+            color: #2d3748;
+            font-size: 18px;
+            margin: 0 0 20px 0;
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .info-card h3 .icon {
+            margin-right: 8px;
+            font-size: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #4a5568;
+            min-width: 120px;
+            flex-shrink: 0;
+        }
+
+        .detail-value {
+            color: #2d3748;
+            flex: 1;
+            margin-left: 15px;
+            word-break: break-word;
+        }
+
+        /* Details card with special styling */
+        .details-card {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-left: 4px solid #48bb78;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .details-card h3 {
+            color: #2d3748;
+            margin: 0 0 15px 0;
+            font-size: 18px;
+        }
+
+        .details-text {
+            color: #4a5568;
+            line-height: 1.7;
+            margin: 0;
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Timestamp */
+        .timestamp-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .timestamp-title {
+            font-size: 14px;
+            opacity: 0.9;
+            margin: 0 0 8px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .timestamp-value {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        /* Action buttons */
+        .action-section {
+            background: #f8fafc;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 30px 0;
+            text-align: center;
+            border: 2px dashed #cbd5e0;
+        }
+
+        .action-title {
+            color: #2d3748;
+            font-size: 18px;
+            margin: 0 0 20px 0;
+            font-weight: 600;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .action-button {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+            min-width: 140px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4F5D75 0%, #2D3142 100%);
+            color: #ffffff;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: #ffffff;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: #ffffff;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #f7fafc;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .footer-text {
+            color: #718096;
+            font-size: 14px;
+            margin: 0 0 10px 0;
+        }
+
+        .footer-contact {
+            color: #4a5568;
+            font-size: 13px;
+            margin: 0;
+        }
+
+        .footer-link {
+            color: #48bb78;
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                width: 100% !important;
+                margin: 0 !important;
+            }
+            
+            .header,
+            .content,
+            .footer {
+                padding: 25px 20px !important;
+            }
+            
+            .detail-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .detail-label {
+                min-width: auto;
+            }
+            
+            .detail-value {
+                margin-left: 0 !important;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .action-button {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">🔧 TechonWay</div>
+            <p class="header-subtitle">Nueva Solicitud de Servicio</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Alert -->
+            <div class="alert-section">
+                <div class="alert-title">🚨 Nueva Solicitud Recibida</div>
+                <div class="alert-text">Un cliente ha enviado una solicitud de servicio que requiere atención</div>
+            </div>
+
+            <!-- Client Information -->
+            <div class="info-card">
+                <h3><span class="icon">👤</span> Información del Cliente</h3>
+                <div class="detail-row">
+                    <div class="detail-label">Nombre:</div>
+                    <div class="detail-value">{{CLIENT_NAME}}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Teléfono:</div>
+                    <div class="detail-value">{{CLIENT_PHONE}}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Dirección:</div>
+                    <div class="detail-value">{{CLIENT_ADDRESS}}</div>
+                </div>
+            </div>
+
+            <!-- Request Details -->
+            <div class="details-card">
+                <h3>📝 Detalle de la Solicitud</h3>
+                <div class="details-text">{{REQUEST_DETAILS}}</div>
+            </div>
+
+            <!-- Timestamp -->
+            <div class="timestamp-card">
+                <div class="timestamp-title">Recibido el</div>
+                <div class="timestamp-value">{{TIMESTAMP}}</div>
+            </div>
+
+            <!-- Actions -->
+            <div class="action-section">
+                <div class="action-title">⚡ Acciones Recomendadas</div>
+                <div class="button-group">
+                    <a href="tel:{{CLIENT_PHONE}}" class="action-button btn-primary">
+                        📞 Llamar Cliente
+                    </a>
+                    <a href="{{ADMIN_URL}}" class="action-button btn-success">
+                        🎫 Crear Ticket
+                    </a>
+                    <a href="{{CALENDAR_URL}}" class="action-button btn-info">
+                        📅 Ver Calendario
+                    </a>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="info-card">
+                <h3><span class="icon">📋</span> Próximos Pasos</h3>
+                <div style="color: #4a5568; line-height: 1.7;">
+                    <p><strong>1. Contactar al cliente</strong> para confirmar los detalles y programar una visita</p>
+                    <p><strong>2. Crear un ticket</strong> en el sistema con la información del cliente</p>
+                    <p><strong>3. Asignar un técnico</strong> disponible según la zona y especialidad</p>
+                    <p><strong>4. Programar la cita</strong> en el calendario del sistema</p>
+                    <p><strong>5. Enviar confirmación</strong> al cliente con los detalles de la cita</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">
+                Sistema de Gestión TechonWay - Notificación Automática
+            </p>
+            <p class="footer-contact">
+                Panel Admin: <a href="{{ADMIN_URL}}" class="footer-link">{{ADMIN_URL}}</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

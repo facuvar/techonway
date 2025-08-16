@@ -165,13 +165,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $client = $db->selectOne("SELECT * FROM clients WHERE id = ?", [$clientId]);
                             if ($client && $client['email']) {
                                 $mailer = new Mailer();
-                                $subject = $isReschedule ? 'Reprogramación de Cita - TechonWay' : 'Actualización de Cita - TechonWay';
-                                $emailBody = $isReschedule ? 
-                                    "Su cita ha sido reprogramada.\n\nNueva fecha: " . date('d/m/Y', strtotime($scheduledDate)) . "\nNueva hora: " . date('H:i', strtotime($scheduledTime)) . "\nCódigo de seguridad: " . $securityCode :
-                                    "Su cita ha sido actualizada.\n\nFecha: " . date('d/m/Y', strtotime($scheduledDate)) . "\nHora: " . date('H:i', strtotime($scheduledTime)) . "\nCódigo de seguridad: " . $securityCode;
+                                // Usar template mejorado para emails de cita
+                                $ticketData = [
+                                    'scheduled_date' => $scheduledDate,
+                                    'scheduled_time' => $scheduledTime,
+                                    'security_code' => $securityCode,
+                                    'description' => $description
+                                ];
                                 
-                                $mailer->send($client['email'], $client['name'], $subject, $emailBody);
-                                $message .= ' - Email enviado al cliente';
+                                $success = $mailer->sendAppointmentEmail($client, $ticketData, $technician, $isReschedule);
+                                if ($success) {
+                                    $message .= ' - Email enviado al cliente';
+                                } else {
+                                    $message .= ' - Error al enviar email al cliente';
+                                }
                         }
                     } catch (Exception $e) {
                             $message .= ' - Error al enviar email: ' . $e->getMessage();
@@ -225,11 +232,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $client = $db->selectOne("SELECT * FROM clients WHERE id = ?", [$clientId]);
                             if ($client && $client['email']) {
                                 $mailer = new Mailer();
-                                $subject = 'Nueva Cita Programada - TechonWay';
-                                $emailBody = "Se ha programado una nueva cita para usted.\n\nFecha: " . date('d/m/Y', strtotime($scheduledDate)) . "\nHora: " . date('H:i', strtotime($scheduledTime)) . "\nCódigo de seguridad: " . $securityCode . "\n\nDescripción: " . $description;
+                                // Usar template mejorado para emails de cita nueva
+                                $ticketData = [
+                                    'scheduled_date' => $scheduledDate,
+                                    'scheduled_time' => $scheduledTime,
+                                    'security_code' => $securityCode,
+                                    'description' => $description
+                                ];
                                 
-                                $mailer->send($client['email'], $client['name'], $subject, $emailBody);
-                                $message .= ' - Email enviado al cliente';
+                                $technician = $db->selectOne("SELECT * FROM users WHERE id = ?", [$assignedTo]);
+                                $success = $mailer->sendAppointmentEmail($client, $ticketData, $technician, false);
+                                if ($success) {
+                                    $message .= ' - Email enviado al cliente';
+                                } else {
+                                    $message .= ' - Error al enviar email al cliente';
+                                }
                         }
                     } catch (Exception $e) {
                             $message .= ' - Error al enviar email: ' . $e->getMessage();

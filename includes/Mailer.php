@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/EmailTemplates.php';
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
@@ -157,6 +159,44 @@ class Mailer {
         if (!is_dir($dir)) { @mkdir($dir, 0777, true); }
         $file = rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'mail_' . date('Y-m-d') . '.log';
         file_put_contents($file, '[' . date('H:i:s') . "] $message\n", FILE_APPEND);
+    }
+
+    /**
+     * Envía email de cita programada con template mejorado
+     */
+    public function sendAppointmentEmail($client, $ticket, $technician, $isReschedule = false): bool {
+        try {
+            $templates = new EmailTemplates();
+            
+            $subject = $templates->getSubject('appointment', $isReschedule);
+            $htmlBody = $templates->generateAppointmentEmail($client, $ticket, $technician, $isReschedule);
+            $textBody = $templates->generateAppointmentTextEmail($client, $ticket, $technician, $isReschedule);
+            
+            return $this->send($client['email'], $client['name'], $subject, $htmlBody, $textBody);
+            
+        } catch (Exception $e) {
+            $this->logError('Error generating appointment email: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Envía email de solicitud de servicio con template mejorado
+     */
+    public function sendServiceRequestEmail($toEmail, $toName, $clientName, $phone, $address, $detail): bool {
+        try {
+            $templates = new EmailTemplates();
+            
+            $subject = $templates->getSubject('service_request');
+            $htmlBody = $templates->generateServiceRequestEmail($clientName, $phone, $address, $detail);
+            $textBody = $templates->generateServiceRequestTextEmail($clientName, $phone, $address, $detail);
+            
+            return $this->send($toEmail, $toName, $subject, $htmlBody, $textBody);
+            
+        } catch (Exception $e) {
+            $this->logError('Error generating service request email: ' . $e->getMessage());
+            return false;
+        }
     }
 }
 

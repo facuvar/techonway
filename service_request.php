@@ -31,18 +31,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'detail' => $detail,
             'status' => 'pending'
         ]);
-        // Enviar notificación por email
+        // Enviar notificación por email con template mejorado
         try {
             $mailer = new Mailer();
             $to = $settings->get('service_requests_notify_to', $mailConfig['notify_to'] ?? 'admin@example.com');
-            $subject = 'Nueva Solicitud de Servicio';
-            $html = '<h3>Nueva Solicitud de Servicio</h3>' .
-                    '<p><strong>Nombre:</strong> ' . htmlspecialchars($name) . '</p>' .
-                    '<p><strong>Teléfono:</strong> ' . htmlspecialchars($phone) . '</p>' .
-                    '<p><strong>Dirección:</strong> ' . htmlspecialchars($address) . '</p>' .
-                    '<p><strong>Detalle:</strong><br>' . nl2br(htmlspecialchars($detail)) . '</p>' .
-                    '<p><em>Enviado desde formulario público.</em></p>';
-            $mailer->send($to, 'Admin', $subject, $html);
+            $success = $mailer->sendServiceRequestEmail($to, 'Admin TechonWay', $name, $phone, $address, $detail);
         } catch (Exception $e) {
             error_log('Error enviando email de solicitud: ' . $e->getMessage());
         }
