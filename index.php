@@ -4,6 +4,14 @@
  * Redirige automáticamente al login
  */
 
+// Ejecutar migración automática en Railway
+if (!isset($_SERVER['HTTP_HOST']) || strpos($_SERVER['HTTP_HOST'], 'localhost') === false) {
+    // Solo en Railway
+    if (file_exists(__DIR__ . '/railway_migration.php')) {
+        include_once __DIR__ . '/railway_migration.php';
+    }
+}
+
 // Si el usuario ya está en una URL específica, no redirigir
 $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
 
