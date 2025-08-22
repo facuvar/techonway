@@ -1,0 +1,33 @@
+{
+  "name": "nuevo_ticket_con_cita_techonway",
+  "category": "UTILITY",
+  "language": "es_AR",
+  "components": [
+    {
+      "type": "HEADER",
+      "format": "TEXT",
+      "text": "🎯 Nuevo Ticket con Cita Programada"
+    },
+    {
+      "type": "BODY",
+      "text": "Hola! Se te ha asignado un nuevo ticket con cita programada:\n\n*Ticket #{{1}}*\n👤 *Cliente:* {{2}}\n📍 *Dirección:* {{3}}\n📝 *Descripción:* {{4}}\n\n📅 *CITA PROGRAMADA:*\n🗓️ *Fecha:* {{5}}\n🕒 *Hora:* {{6}} hs\n🔒 *Código de Seguridad:* {{7}}\n\n📋 *Importante:* Proporciona este código al cliente para verificar tu identidad.\n\nAccede al sistema para más detalles.",
+      "example": {
+        "body_text": [
+          [
+            "12345",
+            "Juan Pérez",
+            "Av. Corrientes 1234, CABA",
+            "Instalación de equipo nuevo",
+            "HOY (27/03/2025)",
+            "14:30",
+            "ABC123"
+          ]
+        ]
+      }
+    },
+    {
+      "type": "FOOTER",
+      "text": "TechonWay - Sistema de Gestión"
+    }
+  ]
+}

@@ -44,5 +44,6 @@ return [
     
     // Configuración de plantillas
     'default_template' => 'nuevo_ticket', // Nombre de la plantilla por defecto para notificaciones de tickets
-    'default_language' => 'es_AR'         // Código de idioma por defecto para las plantillas
+    'default_language' => 'es_AR',        // Código de idioma por defecto para las plantillas
+    'use_hsm_templates' => false          // Habilitar plantillas HSM (cambiar a true cuando estén aprobadas por META)
 ];

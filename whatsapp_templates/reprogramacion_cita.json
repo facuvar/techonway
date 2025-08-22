@@ -1,0 +1,32 @@
+{
+  "name": "reprogramacion_cita_techonway",
+  "category": "UTILITY",
+  "language": "es_AR",
+  "components": [
+    {
+      "type": "HEADER",
+      "format": "TEXT",
+      "text": "📅 Cita Reprogramada"
+    },
+    {
+      "type": "BODY",
+      "text": "Hola! Se ha reprogramado la cita del siguiente ticket:\n\n*Ticket #{{1}}*\n👤 *Cliente:* {{2}}\n📍 *Dirección:* {{3}}\n\n📅 *NUEVA FECHA Y HORA:*\n🗓️ *Fecha:* {{4}}\n🕒 *Hora:* {{5}} hs\n🔒 *Código de Seguridad:* {{6}}\n\n📋 *Importante:* Proporciona este código al cliente para verificar tu identidad.\n\nAccede al sistema para confirmar los cambios.",
+      "example": {
+        "body_text": [
+          [
+            "12345",
+            "Juan Pérez",
+            "Av. Corrientes 1234, CABA",
+            "MAÑANA (28/03/2025)",
+            "16:00",
+            "XYZ789"
+          ]
+        ]
+      }
+    },
+    {
+      "type": "FOOTER",
+      "text": "TechonWay - Sistema de Gestión"
+    }
+  ]
+}

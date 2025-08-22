@@ -1,0 +1,27 @@
+{
+  "name": "bienvenida_tecnico_techonway",
+  "category": "UTILITY",
+  "language": "es_AR",
+  "components": [
+    {
+      "type": "HEADER",
+      "format": "TEXT",
+      "text": "👋 Bienvenido a TechonWay"
+    },
+    {
+      "type": "BODY",
+      "text": "¡Hola {{1}}! Bienvenido/a al sistema de gestión de tickets.\n\nEste es el número oficial para notificaciones de tickets. Por favor, *responde a este mensaje* con un OK para activar las notificaciones.\n\nRecibirás alertas en este número cuando se te asigne un nuevo ticket. 🔔\n\nGracias por tu colaboración.",
+      "example": {
+        "body_text": [
+          [
+            "Carlos Martínez"
+          ]
+        ]
+      }
+    },
+    {
+      "type": "FOOTER",
+      "text": "TechonWay - Sistema de Gestión"
+    }
+  ]
+}

@@ -151,8 +151,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
                             if ($technician && $technician['phone']) {
                         $whatsapp = new WhatsAppNotifier();
-                                $whatsapp->sendTicketNotification($technician, $ticketData, $client);
-                                $message .= ' - WhatsApp enviado al técnico';
+                                $whatsapp->sendTicketNotification($technician, $ticketData, $client, null, $isReschedule);
+                                
+                                // Determinar tipo de notificación
+                                if (!$oldTicket) {
+                                    // Ticket nuevo - siempre es asignación
+                                    $message .= ' - WhatsApp enviado al técnico (nuevo ticket)';
+                                } elseif ($oldTicket['assigned_to'] != $assignedTo) {
+                                    $message .= ' - WhatsApp enviado al técnico (asignación)';
+                                } elseif ($isReschedule) {
+                                    $message .= ' - WhatsApp enviado al técnico (reprogramación)';
+                                } else {
+                                    $message .= ' - WhatsApp enviado al técnico';
+                                }
                             }
                     } catch (Exception $e) {
                             $message .= ' - Error al enviar WhatsApp: ' . $e->getMessage();
@@ -212,19 +223,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             
                             if ($technician && $technician['phone']) {
                                 $whatsapp = new WhatsAppNotifier();
-                                $whatsapp->sendTicketNotification($technician, $ticketData, $client);
-                                
-                                // Determinar tipo de notificación
-                                if (!$oldTicket) {
-                                    // Ticket nuevo - siempre es asignación
-                                    $message .= ' - WhatsApp enviado al técnico (nuevo ticket)';
-                                } elseif ($oldTicket['assigned_to'] != $assignedTo) {
-                                    $message .= ' - WhatsApp enviado al técnico (asignación)';
-                                } elseif ($oldTicket['scheduled_date'] != $scheduledDate || $oldTicket['scheduled_time'] != $scheduledTime) {
-                                    $message .= ' - WhatsApp enviado al técnico (reprogramación)';
-                                } else {
-                                    $message .= ' - WhatsApp enviado al técnico';
-                                }
+                                $whatsapp->sendTicketNotification($technician, $ticketData, $client, null, false);
+                                $message .= ' - WhatsApp enviado al técnico (nuevo ticket)';
                             }
                 } catch (Exception $e) {
                             $message .= ' - Error al enviar WhatsApp: ' . $e->getMessage();

@@ -1,0 +1,30 @@
+{
+  "name": "nuevo_ticket_techonway",
+  "category": "UTILITY",
+  "language": "es_AR",
+  "components": [
+    {
+      "type": "HEADER",
+      "format": "TEXT",
+      "text": "🎯 Nuevo Ticket Asignado"
+    },
+    {
+      "type": "BODY",
+      "text": "Hola! Se te ha asignado un nuevo ticket:\n\n*Ticket #{{1}}*\n👤 *Cliente:* {{2}}\n📍 *Dirección:* {{3}}\n📝 *Descripción:* {{4}}\n\nAccede al sistema para ver todos los detalles y gestionar la visita.",
+      "example": {
+        "body_text": [
+          [
+            "12345",
+            "Juan Pérez",
+            "Av. Corrientes 1234, CABA",
+            "Problema con la conexión de internet"
+          ]
+        ]
+      }
+    },
+    {
+      "type": "FOOTER",
+      "text": "TechonWay - Sistema de Gestión"
+    }
+  ]
+}

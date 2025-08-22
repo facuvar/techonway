@@ -15,6 +15,7 @@ class WhatsAppNotifier {
     private $defaultTemplate;
     private $defaultLanguage;
     private $debugMode;
+    private $useHsmTemplates;
     
     /**
      * Constructor
@@ -41,6 +42,7 @@ class WhatsAppNotifier {
         $this->defaultTemplate = $config['default_template'] ?? 'nuevo_ticket';
         $this->defaultLanguage = $config['default_language'] ?? 'es_AR';
         $this->debugMode = $debugMode;
+        $this->useHsmTemplates = $config['use_hsm_templates'] ?? false;
         
         // Verificar configuración mínima
         if (empty($this->token) || empty($this->phoneNumberId)) {
@@ -55,9 +57,10 @@ class WhatsAppNotifier {
      * @param array $ticket Datos del ticket
      * @param array $client Datos del cliente
      * @param string $templateName Nombre de la plantilla a usar (opcional)
+     * @param bool $isReschedule Indica si es una reprogramación
      * @return bool Éxito o fracaso del envío
      */
-    public function sendTicketNotification($technician, $ticket, $client, $templateName = null) {
+    public function sendTicketNotification($technician, $ticket, $client, $templateName = null, $isReschedule = false) {
         // Verificar que el técnico tenga número de teléfono
         if (empty($technician['phone'])) {
             $this->logError("No se puede enviar notificación: el técnico {$technician['name']} (ID: {$technician['id']}) no tiene número de teléfono");
@@ -68,7 +71,12 @@ class WhatsAppNotifier {
         $phone = $this->formatPhoneNumber($technician['phone']);
         $this->logInfo("Enviando notificación a técnico: {$technician['name']} (ID: {$technician['id']}) - Teléfono formateado: {$phone}");
         
-        // Crear mensaje de texto directo en lugar de usar plantillas
+        // Verificar si debemos usar plantillas HSM
+        if ($this->useHsmTemplates) {
+            return $this->sendTicketNotificationWithHSM($technician, $ticket, $client, $isReschedule);
+        }
+        
+        // Crear mensaje de texto directo (modo compatibilidad)
         $clientName = $client['name'] ?? 'Cliente';
         $clientAddress = $client['address'] ?? 'Dirección no especificada';
         $ticketDescription = isset($ticket['description']) ? substr($ticket['description'], 0, 200) : 'Ver detalles en el sistema';
@@ -100,6 +108,83 @@ class WhatsAppNotifier {
         $message .= "Accede al sistema para más detalles y gestionar la visita.";
         
         return $this->sendTextMessage($phone, $message);
+    }
+    
+    /**
+     * Envía notificación usando plantillas HSM de META
+     * 
+     * @param array $technician Datos del técnico
+     * @param array $ticket Datos del ticket
+     * @param array $client Datos del cliente
+     * @param bool $isReschedule Indica si es una reprogramación
+     * @return bool Éxito o fracaso del envío
+     */
+    private function sendTicketNotificationWithHSM($technician, $ticket, $client, $isReschedule = false) {
+        $phone = $this->formatPhoneNumber($technician['phone']);
+        
+        // Preparar datos básicos
+        $clientName = $client['name'] ?? 'Cliente';
+        $clientAddress = $client['address'] ?? 'Dirección no especificada';
+        $ticketDescription = isset($ticket['description']) ? substr($ticket['description'], 0, 100) : 'Ver detalles en el sistema';
+        
+        if ($isReschedule) {
+            // Plantilla para reprogramación
+            $templateName = 'reprogramacion_cita_techonway';
+            $params = [
+                ['type' => 'text', 'text' => (string)$ticket['id']],
+                ['type' => 'text', 'text' => $clientName],
+                ['type' => 'text', 'text' => $clientAddress],
+                ['type' => 'text', 'text' => $this->formatDateForMessage($ticket['scheduled_date'])],
+                ['type' => 'text', 'text' => date('H:i', strtotime($ticket['scheduled_time']))],
+                ['type' => 'text', 'text' => $ticket['security_code'] ?? 'N/A']
+            ];
+        } elseif (!empty($ticket['scheduled_date']) && !empty($ticket['scheduled_time'])) {
+            // Plantilla para nuevo ticket con cita
+            $templateName = 'nuevo_ticket_con_cita_techonway';
+            $params = [
+                ['type' => 'text', 'text' => (string)$ticket['id']],
+                ['type' => 'text', 'text' => $clientName],
+                ['type' => 'text', 'text' => $clientAddress],
+                ['type' => 'text', 'text' => $ticketDescription],
+                ['type' => 'text', 'text' => $this->formatDateForMessage($ticket['scheduled_date'])],
+                ['type' => 'text', 'text' => date('H:i', strtotime($ticket['scheduled_time']))],
+                ['type' => 'text', 'text' => $ticket['security_code'] ?? 'N/A']
+            ];
+        } else {
+            // Plantilla para nuevo ticket sin cita
+            $templateName = 'nuevo_ticket_techonway';
+            $params = [
+                ['type' => 'text', 'text' => (string)$ticket['id']],
+                ['type' => 'text', 'text' => $clientName],
+                ['type' => 'text', 'text' => $clientAddress],
+                ['type' => 'text', 'text' => $ticketDescription]
+            ];
+        }
+        
+        $this->logInfo("Usando plantilla HSM: {$templateName}");
+        return $this->sendTemplateMessageWithParams($phone, $templateName, $params);
+    }
+    
+    /**
+     * Envía mensaje de bienvenida usando plantilla HSM
+     * 
+     * @param array $technician Datos del técnico
+     * @return bool Éxito o fracaso del envío
+     */
+    public function sendWelcomeMessageHSM($technician) {
+        if (empty($technician['phone'])) {
+            $this->logError("No se puede enviar mensaje de bienvenida: el técnico {$technician['name']} (ID: {$technician['id']}) no tiene número de teléfono");
+            return false;
+        }
+        
+        $phone = $this->formatPhoneNumber($technician['phone']);
+        $templateName = 'bienvenida_tecnico_techonway';
+        $params = [
+            ['type' => 'text', 'text' => $technician['name']]
+        ];
+        
+        $this->logInfo("Enviando mensaje de bienvenida HSM a técnico: {$technician['name']} (ID: {$technician['id']})");
+        return $this->sendTemplateMessageWithParams($phone, $templateName, $params);
     }
     
     /**
@@ -330,6 +415,11 @@ class WhatsAppNotifier {
         if (empty($technician['phone'])) {
             $this->logError("No se puede enviar mensaje de bienvenida: el técnico {$technician['name']} (ID: {$technician['id']}) no tiene número de teléfono");
             return false;
+        }
+        
+        // Usar plantilla HSM si está habilitada
+        if ($this->useHsmTemplates) {
+            return $this->sendWelcomeMessageHSM($technician);
         }
         
         // Formatear el número de teléfono
