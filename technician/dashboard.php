@@ -36,7 +36,7 @@ $completedTicketsCount = $db->selectOne(
 
 // Get scheduled appointments for today and upcoming days
 // Versión segura y compatible
-$scheduledAppointments = $db->select("
+$scheduledAppointmentsRaw = $db->select("
     SELECT t.id, t.description, t.status, t.scheduled_date, t.scheduled_time, t.security_code,
            c.name as client_name, c.business_name, c.address, c.latitude, c.longitude
     FROM tickets t
@@ -45,12 +45,27 @@ $scheduledAppointments = $db->select("
     AND t.scheduled_date IS NOT NULL 
     AND t.scheduled_date >= CURDATE()
     ORDER BY t.scheduled_date, t.scheduled_time, t.id
-    LIMIT 5
+    LIMIT 15
 ", [$technicianId]);
+
+// Eliminar duplicados por ID en PHP (solución más segura)
+$scheduledAppointments = [];
+$seenIds = [];
+foreach ($scheduledAppointmentsRaw as $appointment) {
+    if (!in_array($appointment['id'], $seenIds)) {
+        $scheduledAppointments[] = $appointment;
+        $seenIds[] = $appointment['id'];
+        
+        // Limitar a 5 resultados únicos
+        if (count($scheduledAppointments) >= 5) {
+            break;
+        }
+    }
+}
 
 // Get assigned tickets
 // Versión segura y compatible
-$assignedTickets = $db->select("
+$assignedTicketsRaw = $db->select("
     SELECT t.id, t.description, t.status, t.created_at, t.scheduled_date, t.scheduled_time, t.security_code,
            c.name as client_name, c.business_name, c.address, c.latitude, c.longitude
     FROM tickets t
@@ -63,8 +78,23 @@ $assignedTickets = $db->select("
             ELSE 3
         END,
         t.created_at DESC, t.id
-    LIMIT 10
+    LIMIT 30
 ", [$technicianId]);
+
+// Eliminar duplicados por ID en PHP (solución más segura)
+$assignedTickets = [];
+$seenTicketIds = [];
+foreach ($assignedTicketsRaw as $ticket) {
+    if (!in_array($ticket['id'], $seenTicketIds)) {
+        $assignedTickets[] = $ticket;
+        $seenTicketIds[] = $ticket['id'];
+        
+        // Limitar a 10 resultados únicos
+        if (count($assignedTickets) >= 10) {
+            break;
+        }
+    }
+}
 
 // Page title
 $pageTitle = __('tech.dashboard.title', 'Dashboard de Técnico');
