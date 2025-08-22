@@ -15,32 +15,32 @@ $technicianId = $_SESSION['user_id'];
 
 // Get counts for dashboard stats
 $assignedTicketsCount = $db->selectOne(
-    "SELECT COUNT(*) as count FROM tickets WHERE technician_id = ?",
+    "SELECT COUNT(*) as count FROM tickets WHERE assigned_to = ?",
     [$technicianId]
 )['count'];
 
 $pendingTicketsCount = $db->selectOne(
-    "SELECT COUNT(*) as count FROM tickets WHERE technician_id = ? AND status = 'pending'",
+    "SELECT COUNT(*) as count FROM tickets WHERE assigned_to = ? AND status = 'pending'",
     [$technicianId]
 )['count'];
 
 $inProgressTicketsCount = $db->selectOne(
-    "SELECT COUNT(*) as count FROM tickets WHERE technician_id = ? AND status = 'in_progress'",
+    "SELECT COUNT(*) as count FROM tickets WHERE assigned_to = ? AND status = 'in_progress'",
     [$technicianId]
 )['count'];
 
 $completedTicketsCount = $db->selectOne(
-    "SELECT COUNT(*) as count FROM tickets WHERE technician_id = ? AND status = 'completed'",
+    "SELECT COUNT(*) as count FROM tickets WHERE assigned_to = ? AND status = 'completed'",
     [$technicianId]
 )['count'];
 
 // Get scheduled appointments for today and upcoming days
 $scheduledAppointments = $db->select("
-    SELECT t.id, t.description, t.status, t.scheduled_date, t.scheduled_time, t.security_code,
+    SELECT DISTINCT t.id, t.description, t.status, t.scheduled_date, t.scheduled_time, t.security_code,
            c.name as client_name, c.business_name, c.address, c.latitude, c.longitude
     FROM tickets t
     JOIN clients c ON t.client_id = c.id
-    WHERE t.technician_id = ? 
+    WHERE t.assigned_to = ? 
     AND t.scheduled_date IS NOT NULL 
     AND t.scheduled_date >= CURDATE()
     ORDER BY t.scheduled_date, t.scheduled_time
@@ -49,11 +49,11 @@ $scheduledAppointments = $db->select("
 
 // Get assigned tickets
 $assignedTickets = $db->select("
-    SELECT t.id, t.description, t.status, t.created_at, t.scheduled_date, t.scheduled_time, t.security_code,
+    SELECT DISTINCT t.id, t.description, t.status, t.created_at, t.scheduled_date, t.scheduled_time, t.security_code,
            c.name as client_name, c.business_name, c.address, c.latitude, c.longitude
     FROM tickets t
     JOIN clients c ON t.client_id = c.id
-    WHERE t.technician_id = ?
+    WHERE t.assigned_to = ?
     ORDER BY 
         CASE 
             WHEN t.status = 'pending' THEN 1
@@ -379,7 +379,7 @@ include_once '../templates/header.php';
         FROM visits v
         JOIN tickets t ON v.ticket_id = t.id
         JOIN clients c ON t.client_id = c.id
-        WHERE t.technician_id = ? AND v.end_time IS NULL
+        WHERE t.assigned_to = ? AND v.end_time IS NULL
         ORDER BY v.start_time DESC
         LIMIT 1
     ", [$technicianId]);
