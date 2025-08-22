@@ -35,36 +35,34 @@ $completedTicketsCount = $db->selectOne(
 )['count'];
 
 // Get scheduled appointments for today and upcoming days
-// Solución agresiva: GROUP BY para forzar unicidad
+// Versión segura y compatible
 $scheduledAppointments = $db->select("
     SELECT t.id, t.description, t.status, t.scheduled_date, t.scheduled_time, t.security_code,
            c.name as client_name, c.business_name, c.address, c.latitude, c.longitude
     FROM tickets t
-    INNER JOIN clients c ON t.client_id = c.id
+    LEFT JOIN clients c ON t.client_id = c.id
     WHERE t.assigned_to = ? 
     AND t.scheduled_date IS NOT NULL 
     AND t.scheduled_date >= CURDATE()
-    GROUP BY t.id
-    ORDER BY t.scheduled_date, t.scheduled_time
+    ORDER BY t.scheduled_date, t.scheduled_time, t.id
     LIMIT 5
 ", [$technicianId]);
 
 // Get assigned tickets
-// Solución agresiva: GROUP BY para forzar unicidad
+// Versión segura y compatible
 $assignedTickets = $db->select("
     SELECT t.id, t.description, t.status, t.created_at, t.scheduled_date, t.scheduled_time, t.security_code,
            c.name as client_name, c.business_name, c.address, c.latitude, c.longitude
     FROM tickets t
-    INNER JOIN clients c ON t.client_id = c.id
+    LEFT JOIN clients c ON t.client_id = c.id
     WHERE t.assigned_to = ?
-    GROUP BY t.id
     ORDER BY 
         CASE 
             WHEN t.status = 'pending' THEN 1
             WHEN t.status = 'in_progress' THEN 2
             ELSE 3
         END,
-        t.created_at DESC
+        t.created_at DESC, t.id
     LIMIT 10
 ", [$technicianId]);
 
